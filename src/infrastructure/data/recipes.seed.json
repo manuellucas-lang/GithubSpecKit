@@ -1,0 +1,161 @@
+[
+  {
+    "id": "rec-01-paella-marisco",
+    "title": "Paella de Marisco Mediterránea",
+    "description": "Exquisito arroz en paella tradicional cocinado a fuego lento con azafrán en hebra, gambas rojas, mejillones y calamar fresco.",
+    "keyword": "seafood paella",
+    "servings": 4,
+    "difficulty": "Intermedio",
+    "cookingTime": {
+      "prepMinutes": 20,
+      "cookMinutes": 25,
+      "totalMinutes": 45,
+      "displayLabel": "45 min"
+    },
+    "ingredients": [
+      { "id": "ing-1", "name": "Arroz bomba", "quantity": 400, "unit": "g" },
+      { "id": "ing-2", "name": "Gambas rojas", "quantity": 250, "unit": "g" },
+      { "id": "ing-3", "name": "Mejillones de roca", "quantity": 300, "unit": "g" },
+      { "id": "ing-4", "name": "Calamar limpio troceado", "quantity": 200, "unit": "g" },
+      { "id": "ing-5", "name": "Caldo de pescado de roca", "quantity": 1000, "unit": "ml" },
+      { "id": "ing-6", "name": "Hebra de azafrán", "quantity": 0.5, "unit": "g" }
+    ],
+    "steps": [
+      { "stepNumber": 1, "title": "Sofrito base", "instruction": "Dorar el calamar y las gambas con aceite de oliva virgen en la paellera durante 4 minutos." },
+      { "stepNumber": 2, "title": "Nacarar el arroz", "instruction": "Incorporar el arroz bomba y remover durante 2 minutos hasta impregnar los jugos." },
+      { "stepNumber": 3, "title": "Cocción y reposo", "instruction": "Añadir el caldo hirviendo con el azafrán. Cocinar 18 minutos y dejar reposar 5 minutos cubierto." }
+    ],
+    "allergens": ["CRUSTACEANS", "MOLLUSCS", "FISH"]
+  },
+  {
+    "id": "rec-02-gazpacho-andaluz",
+    "title": "Gazpacho Andaluz Tradicional",
+    "description": "Sopa fría y sedosa de tomates maduros, pepino, pimiento y aceite de oliva virgen extra. Ideal para días calurosos.",
+    "keyword": "gazpacho",
+    "servings": 6,
+    "difficulty": "Fácil",
+    "cookingTime": {
+      "prepMinutes": 15,
+      "cookMinutes": 0,
+      "totalMinutes": 15,
+      "displayLabel": "15 min (Sin cocción térmica)"
+    },
+    "ingredients": [
+      { "id": "ing-201", "name": "Tomates pera maduros", "quantity": 1000, "unit": "g" },
+      { "id": "ing-202", "name": "Pepino pelado", "quantity": 1, "unit": "unidad" },
+      { "id": "ing-203", "name": "Pimiento verde italiano", "quantity": 1, "unit": "unidad" },
+      { "id": "ing-204", "name": "Aceite de oliva virgen extra", "quantity": 75, "unit": "ml" },
+      { "id": "ing-205", "name": "Vinagre de Jerez", "quantity": 25, "unit": "ml" }
+    ],
+    "steps": [
+      { "stepNumber": 1, "title": "Triturado", "instruction": "Lavar y trocear las hortalizas. Triturar a máxima velocidad en procesador durante 3 minutos." },
+      { "stepNumber": 2, "title": "Emulsión", "instruction": "Incorporar el aceite virgen extra en hilo continuo y el vinagre hasta obtener textura sedosa." },
+      { "stepNumber": 3, "title": "Refrigerado", "instruction": "Filtrar por colador fino y enfriar en nevera al menos 2 horas antes de servir bien frío." }
+    ],
+    "allergens": []
+  },
+  {
+    "id": "rec-03-risotto-funghi",
+    "title": "Risotto Cremoso de Setas Silvestres y Parmesano",
+    "description": "Arroz carnaroli lentamente mantecado con boletus edulis, chalotas y queso Parmigiano Reggiano curado 24 meses.",
+    "keyword": "mushroom risotto",
+    "servings": 3,
+    "difficulty": "Intermedio",
+    "cookingTime": {
+      "prepMinutes": 15,
+      "cookMinutes": 20,
+      "totalMinutes": 35,
+      "displayLabel": "35 min"
+    },
+    "ingredients": [
+      { "id": "ing-301", "name": "Arroz Carnaroli", "quantity": 300, "unit": "g" },
+      { "id": "ing-302", "name": "Boletus y champiñones", "quantity": 250, "unit": "g" },
+      { "id": "ing-303", "name": "Mantequilla artesanal", "quantity": 50, "unit": "g" },
+      { "id": "ing-304", "name": "Parmesano rallado", "quantity": 80, "unit": "g" },
+      { "id": "ing-305", "name": "Caldo de verduras caliente", "quantity": 850, "unit": "ml" }
+    ],
+    "steps": [
+      { "stepNumber": 1, "title": "Salteado", "instruction": "Dorar las setas con chalota finamente picada hasta que suelten su agua y doren." },
+      { "stepNumber": 2, "title": "Cocción lenta", "instruction": "Añadir el arroz y agregar el caldo cazo a cazo removiendo constantemente para liberar el almidón." },
+      { "stepNumber": 3, "title": "Mantecatura", "instruction": "Apagar el fuego, añadir la mantequilla fría y el parmesano, batiendo enérgicamente." }
+    ],
+    "allergens": ["DAIRY"]
+  },
+  {
+    "id": "rec-04-salmon-al-horno",
+    "title": "Salmón Noruego con Costra de Hierbas y Espárragos",
+    "description": "Lomos tiernos de salmón salvaje marinados con eneldo, mostaza dijon y limón, acompañados de espárragos verdes tiernos.",
+    "keyword": "baked salmon asparagus",
+    "servings": 2,
+    "difficulty": "Fácil",
+    "cookingTime": {
+      "prepMinutes": 10,
+      "cookMinutes": 15,
+      "totalMinutes": 25,
+      "displayLabel": "25 min"
+    },
+    "ingredients": [
+      { "id": "ing-401", "name": "Lomos de salmón fresco", "quantity": 400, "unit": "g" },
+      { "id": "ing-402", "name": "Espárragos verdes", "quantity": 200, "unit": "g" },
+      { "id": "ing-403", "name": "Mostaza de Dijon", "quantity": 20, "unit": "g" },
+      { "id": "ing-404", "name": "Eneldo fresco picado", "quantity": 10, "unit": "g" }
+    ],
+    "steps": [
+      { "stepNumber": 1, "title": "Preparación", "instruction": "Untar los lomos con la mostaza de Dijon y espolvorear el eneldo fresco con una pizca de sal marina." },
+      { "stepNumber": 2, "title": "Horneado", "instruction": "Hornear a 200 grados Celsius junto con los espárragos rociados de aceite de oliva durante 12-15 minutos." }
+    ],
+    "allergens": ["FISH", "MUSTARD"]
+  },
+  {
+    "id": "rec-05-bowl-quinoa-aguacate",
+    "title": "Power Bowl de Quinoa, Aguacate y Edamame",
+    "description": "Plato completo y nutritivo de quinoa tricolor con láminas de aguacate hass, garbanzos tostados y semillas de sésamo.",
+    "keyword": "quinoa avocado bowl",
+    "servings": 2,
+    "difficulty": "Fácil",
+    "cookingTime": {
+      "prepMinutes": 10,
+      "cookMinutes": 12,
+      "totalMinutes": 22,
+      "displayLabel": "22 min"
+    },
+    "ingredients": [
+      { "id": "ing-501", "name": "Quinoa tricolor cocida", "quantity": 250, "unit": "g" },
+      { "id": "ing-502", "name": "Aguacate maduro en láminas", "quantity": 1, "unit": "unidad" },
+      { "id": "ing-503", "name": "Semillas de sésamo tostadas", "quantity": 15, "unit": "g" },
+      { "id": "ing-504", "name": "Edamame desgranado", "quantity": 100, "unit": "g" }
+    ],
+    "steps": [
+      { "stepNumber": 1, "title": "Cocinar quinoa", "instruction": "Hervir la quinoa en agua ligeramente salada durante 12 minutos y escurrir." },
+      { "stepNumber": 2, "title": "Montaje del plato", "instruction": "Disponer una base de quinoa, cubrir con aguacate, edamame y terminar con sésamo tostado." }
+    ],
+    "allergens": ["SESAME", "SOY"]
+  },
+  {
+    "id": "rec-06-brownie-avellanas",
+    "title": "Tarta Brownie de Chocolate Negro y Avellanas",
+    "description": "Bizcocho denso de chocolate belga al 70% con corazón fundente y crujientes avellanas tostadas del Piamonte.",
+    "keyword": "chocolate hazelnut brownie",
+    "servings": 8,
+    "difficulty": "Intermedio",
+    "cookingTime": {
+      "prepMinutes": 20,
+      "cookMinutes": 25,
+      "totalMinutes": 45,
+      "displayLabel": "45 min"
+    },
+    "ingredients": [
+      { "id": "ing-601", "name": "Chocolate negro 70%", "quantity": 200, "unit": "g" },
+      { "id": "ing-602", "name": "Mantequilla con sal", "quantity": 120, "unit": "g" },
+      { "id": "ing-603", "name": "Huevos camperos", "quantity": 3, "unit": "unidad" },
+      { "id": "ing-604", "name": "Harina de trigo repostera", "quantity": 80, "unit": "g" },
+      { "id": "ing-605", "name": "Avellanas tostadas picadas", "quantity": 100, "unit": "g" }
+    ],
+    "steps": [
+      { "stepNumber": 1, "title": "Fundir chocolate", "instruction": "Fundir el chocolate troceado junto con la mantequilla al baño maría o microondas suave." },
+      { "stepNumber": 2, "title": "Batir y mezclar", "instruction": "Batir los huevos con azúcar hasta blanquear, añadir el chocolate fundido y la harina tamizada." },
+      { "stepNumber": 3, "title": "Horneado", "instruction": "Incorporar las avellanas y hornear a 175 grados Celsius en molde cuadrado durante 22 minutos." }
+    ],
+    "allergens": ["GLUTEN", "EGGS", "DAIRY", "NUTS"]
+  }
+]

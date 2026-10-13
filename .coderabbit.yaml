@@ -1,0 +1,34 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: "es-ES"
+tone_instructions: "Profesional, conciso, tecnico y analitico. Sin redundancias ni adornos."
+early_access: false
+reviews:
+  profile: "assertive"
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - "main"
+  tools:
+    ast-grep:
+      enabled: true
+    eslint:
+      enabled: true
+  path_instructions:
+    - path: "specs/**"
+      instructions: "Verificar cumplimiento con la metodologia Spec-Kit (especificacion formal, criterios medibles y contratos). Asegurar que no contenga emojis."
+    - path: "src/**"
+      instructions: |
+        - Arquitectura React 19: Validar uso eficiente de hooks, useTransition y desacoplamiento en capas (domain, infrastructure, presentation).
+        - No emojis: Prohibir expresamente cualquier caracter de emoji en codigo, textos o comentarios.
+        - Accesibilidad: Verificar atributos ARIA y roles semanticos.
+        - Seguridad y tipos: Tipado estricto en TypeScript sin uso de any.
+    - path: "src/tests/**"
+      instructions: "Confirmar que las pruebas cubran casos limite y sigan los principios de Test-Driven Development (TDD) establecidos en la constitucion."
+chat:
+  auto_reply: true

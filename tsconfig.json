@@ -17,11 +17,11 @@
     "noFallthroughCasesInSwitch": true,
     "baseUrl": ".",
     "paths": {
-      "@domain/*": ["src/domain/*"],
-      "@infra/*": ["src/infrastructure/*"],
-      "@presentation/*": ["src/presentation/*"],
-      "@tests/*": ["src/tests/*"]
+      "@shared/*": ["shared/*"],
+      "@frontend/*": ["frontend/*"],
+      "@backend/*": ["backend/*"],
+      "@tests/*": ["tests/*"]
     }
   },
-  "include": ["src"]
+  "include": ["shared", "frontend", "backend", "tests"]
 }

@@ -132,5 +132,34 @@ describe('RecipeImagePreferenceService (Unit Tests)', () => {
 
     setItemSpy.mockRestore();
   });
+
+  it('returns false in clearPreference and does not notify subscribers when storage read fails', () => {
+    service.setPreference('recipe-1', mockCandidate);
+
+    const listener = vi.fn();
+    service.subscribe(listener);
+
+    const getItemSpy = vi.spyOn(window.localStorage, 'getItem').mockImplementation(() => {
+      throw new Error('SecurityError: Access denied');
+    });
+
+    const result = service.clearPreference('recipe-1');
+    expect(result).toBe(false);
+    expect(listener).not.toHaveBeenCalled();
+
+    getItemSpy.mockRestore();
+  });
+
+  it('returns true and emits preference: null when clearing an unpersisted preference with empty storage', () => {
+    const listener = vi.fn();
+    service.subscribe(listener);
+
+    const result = service.clearPreference('recipe-not-found');
+    expect(result).toBe(true);
+    expect(listener).toHaveBeenCalledWith({
+      recipeId: 'recipe-not-found',
+      preference: null,
+    });
+  });
 });
 

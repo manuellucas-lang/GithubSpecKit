@@ -28,7 +28,7 @@ export class RecipeImagePreferenceService {
    * Initializes the preference service and registers cross-tab storage event listeners.
    */
   constructor() {
-    this.lastKnownPreferences = this.readStorage();
+    this.lastKnownPreferences = this.readStorage() || {};
 
     if (typeof window !== 'undefined') {
       try {
@@ -46,26 +46,30 @@ export class RecipeImagePreferenceService {
   /**
    * Safely reads stored image preferences from localStorage, validating object structure.
    *
-   * @returns A map of recipe IDs to their stored preferences.
+   * @returns A map of recipe IDs to their stored preferences, or null if storage access failed.
    */
-  private readStorage(): Record<string, RecipeImagePreference> {
+  private readStorage(): Record<string, RecipeImagePreference> | null {
     try {
       if (typeof window === 'undefined') {
-        return {};
+        return null;
       }
       const storage = window.localStorage;
       if (!storage) {
-        return {};
+        return null;
       }
       const raw = storage.getItem(STORAGE_KEY);
       if (!raw) return {};
-      const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+          return {};
+        }
+        return parsed as Record<string, RecipeImagePreference>;
+      } catch {
         return {};
       }
-      return parsed as Record<string, RecipeImagePreference>;
     } catch {
-      return {};
+      return null;
     }
   }
 
@@ -101,6 +105,7 @@ export class RecipeImagePreferenceService {
   getPreference(recipeId: string): RecipeImagePreference | null {
     if (!recipeId) return null;
     const all = this.readStorage();
+    if (!all) return null;
     const candidate = all[recipeId];
     if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
       return null;
@@ -137,6 +142,8 @@ export class RecipeImagePreferenceService {
     validateRecipeImagePreference(preference);
 
     const all = this.readStorage();
+    if (!all) return false;
+
     all[recipeId] = preference;
     const isSaved = this.writeStorage(all);
 
@@ -150,12 +157,17 @@ export class RecipeImagePreferenceService {
   /**
    * Clears any custom preference for a recipe, reverting it to the default image,
    * and notifies all subscribers if removal succeeds.
+   * Returns false without emitting changes if reading storage fails.
    *
    * @param recipeId - The unique identifier of the recipe to reset.
    * @returns Boolean indicating whether the preference was successfully cleared and emitted.
    */
   clearPreference(recipeId: string): boolean {
     const all = this.readStorage();
+    if (all === null) {
+      return false;
+    }
+
     if (all[recipeId]) {
       delete all[recipeId];
       const isSaved = this.writeStorage(all);
@@ -172,7 +184,7 @@ export class RecipeImagePreferenceService {
    * @returns A dictionary of all persisted recipe preferences.
    */
   getAllPreferences(): Record<string, RecipeImagePreference> {
-    return this.readStorage();
+    return this.readStorage() || {};
   }
 
   /**
@@ -221,6 +233,8 @@ export class RecipeImagePreferenceService {
    */
   private notifyAll(): void {
     const current = this.readStorage();
+    if (!current) return;
+
     const allRecipeIds = new Set([
       ...Object.keys(this.lastKnownPreferences),
       ...Object.keys(current),

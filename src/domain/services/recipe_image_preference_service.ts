@@ -117,8 +117,9 @@ export class RecipeImagePreferenceService {
    *
    * @param recipeId - The unique identifier of the recipe.
    * @param candidate - The candidate image chosen by the user.
+   * @returns Boolean indicating whether the preference was successfully saved and emitted.
    */
-  setPreference(recipeId: string, candidate: RecipeImageCandidate): void {
+  setPreference(recipeId: string, candidate: RecipeImageCandidate): boolean {
     validateRecipeImageCandidate(candidate);
 
     const preference: RecipeImagePreference = {
@@ -139,10 +140,11 @@ export class RecipeImagePreferenceService {
     all[recipeId] = preference;
     const isSaved = this.writeStorage(all);
 
-    if (isSaved) {
-      this.lastKnownPreferences[recipeId] = preference;
-      this.emitChange({ recipeId, preference });
-    }
+    if (!isSaved) return false;
+
+    this.lastKnownPreferences[recipeId] = preference;
+    this.emitChange({ recipeId, preference });
+    return true;
   }
 
   /**
@@ -150,16 +152,18 @@ export class RecipeImagePreferenceService {
    * and notifies all subscribers if removal succeeds.
    *
    * @param recipeId - The unique identifier of the recipe to reset.
+   * @returns Boolean indicating whether the preference was successfully cleared and emitted.
    */
-  clearPreference(recipeId: string): void {
+  clearPreference(recipeId: string): boolean {
     const all = this.readStorage();
     if (all[recipeId]) {
       delete all[recipeId];
       const isSaved = this.writeStorage(all);
-      if (!isSaved) return;
+      if (!isSaved) return false;
     }
     delete this.lastKnownPreferences[recipeId];
     this.emitChange({ recipeId, preference: null });
+    return true;
   }
 
   /**

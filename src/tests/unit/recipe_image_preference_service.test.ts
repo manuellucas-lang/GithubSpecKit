@@ -109,5 +109,28 @@ describe('RecipeImagePreferenceService (Unit Tests)', () => {
       preference: null,
     });
   });
+
+  it('returns true when setPreference or clearPreference succeeds', () => {
+    const setResult = service.setPreference('recipe-1', mockCandidate);
+    expect(setResult).toBe(true);
+
+    const clearResult = service.clearPreference('recipe-1');
+    expect(clearResult).toBe(true);
+  });
+
+  it('returns false when storage write fails and does not notify subscribers', () => {
+    const listener = vi.fn();
+    service.subscribe(listener);
+
+    const setItemSpy = vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {
+      throw new Error('QuotaExceededError');
+    });
+
+    const result = service.setPreference('recipe-1', mockCandidate);
+    expect(result).toBe(false);
+    expect(listener).not.toHaveBeenCalled();
+
+    setItemSpy.mockRestore();
+  });
 });
 

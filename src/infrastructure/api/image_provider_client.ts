@@ -348,7 +348,12 @@ export class ImageProviderClient {
    */
   async fetchImageCandidatesByKeyword(options: ImageCandidatesQueryOptions): Promise<RecipeImageCandidate[]> {
     const keyword = options.keyword.toLowerCase().trim();
-    const count = options.count && options.count > 0 ? options.count : 4;
+    const requested = options.count;
+    const normalized =
+      typeof requested === 'number' && Number.isFinite(requested)
+        ? Math.floor(requested)
+        : 6;
+    const count = Math.min(Math.max(normalized, 3), 10);
 
     // Check curated library first
     const curated = CURATED_CANDIDATE_GALLERIES[keyword];
@@ -393,8 +398,11 @@ export class ImageProviderClient {
               isFallback: false,
             });
           });
-          if (candidates.length > 0) {
+          if (candidates.length >= 3) {
             return candidates;
+          }
+          if (candidates.length > 0) {
+            return [];
           }
         }
       }

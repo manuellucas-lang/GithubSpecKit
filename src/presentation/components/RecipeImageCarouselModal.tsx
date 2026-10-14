@@ -12,7 +12,7 @@ export interface RecipeImageCarouselModalProps {
   recipeTitle: string;
   keyword: string;
   currentImageUrl?: string;
-  onSelectImage: (candidate: RecipeImageCandidate) => void;
+  onSelectImage: (candidate: RecipeImageCandidate) => boolean;
   onResetDefault: () => void;
   onClose: () => void;
 }
@@ -37,15 +37,27 @@ export const RecipeImageCarouselModal: React.FC<RecipeImageCarouselModalProps> =
   const [candidates, setCandidates] = useState<RecipeImageCandidate[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
+  const [selectionError, setSelectionError] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const previousActiveElementRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  const currentImageUrlRef = useRef(currentImageUrl);
+
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    currentImageUrlRef.current = currentImageUrl;
+  }, [currentImageUrl]);
 
   useEffect(() => {
     if (!isOpen) return;
 
     let isMounted = true;
     setIsLoading(true);
+    setSelectionError(null);
 
     imageProviderClient
       .fetchImageCandidatesByKeyword({ keyword, count: 6 })
@@ -54,7 +66,7 @@ export const RecipeImageCarouselModal: React.FC<RecipeImageCarouselModalProps> =
           setCandidates(res);
           setIsLoading(false);
           // Highlight current if matches
-          const match = res.find(c => c.url === currentImageUrl);
+          const match = res.find(c => c.url === currentImageUrlRef.current);
           if (match) {
             setSelectedCandidateId(match.id);
           }
@@ -69,7 +81,7 @@ export const RecipeImageCarouselModal: React.FC<RecipeImageCarouselModalProps> =
     return () => {
       isMounted = false;
     };
-  }, [isOpen, keyword, currentImageUrl]);
+  }, [isOpen, keyword]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -92,7 +104,7 @@ export const RecipeImageCarouselModal: React.FC<RecipeImageCarouselModalProps> =
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        onClose();
+        onCloseRef.current();
         return;
       }
 
@@ -133,7 +145,7 @@ export const RecipeImageCarouselModal: React.FC<RecipeImageCarouselModalProps> =
         previousActiveElementRef.current.focus();
       }
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -144,8 +156,12 @@ export const RecipeImageCarouselModal: React.FC<RecipeImageCarouselModalProps> =
   };
 
   const handleChoose = (candidate: RecipeImageCandidate) => {
-    setSelectedCandidateId(candidate.id);
-    onSelectImage(candidate);
+    if (onSelectImage(candidate)) {
+      setSelectedCandidateId(candidate.id);
+      setSelectionError(null);
+    } else {
+      setSelectionError('No se pudo guardar la imagen seleccionada. Inténtalo de nuevo.');
+    }
   };
 
   return (
@@ -192,6 +208,23 @@ export const RecipeImageCarouselModal: React.FC<RecipeImageCarouselModalProps> =
             <X size={18} />
           </button>
         </div>
+
+        {selectionError && (
+          <p
+            role="alert"
+            style={{
+              padding: '10px 14px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'rgba(239, 68, 68, 0.15)',
+              color: '#ef4444',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+              margin: '0 0 14px 0',
+            }}
+          >
+            {selectionError}
+          </p>
+        )}
 
         {/* Carousel Area */}
         <div style={{ position: 'relative', marginTop: '12px', marginBottom: '20px' }}>
@@ -332,6 +365,7 @@ export const RecipeImageCarouselModal: React.FC<RecipeImageCarouselModalProps> =
             onClick={() => {
               onResetDefault();
               setSelectedCandidateId(null);
+              setSelectionError(null);
             }}
             style={{
               display: 'inline-flex',

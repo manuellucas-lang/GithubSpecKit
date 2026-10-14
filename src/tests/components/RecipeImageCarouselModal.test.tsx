@@ -9,7 +9,7 @@ describe('RecipeImageCarouselModal Component', () => {
     recipeTitle: 'Paella de Marisco Tradicional',
     keyword: 'seafood paella',
     currentImageUrl: 'https://images.unsplash.com/photo-1534080564583-6be75777b70a?auto=format&fit=crop&w=1200&q=80',
-    onSelectImage: vi.fn(),
+    onSelectImage: vi.fn().mockReturnValue(true),
     onResetDefault: vi.fn(),
     onClose: vi.fn(),
   };

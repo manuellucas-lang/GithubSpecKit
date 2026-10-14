@@ -15,8 +15,8 @@ export interface UseRecipeImagePreferenceResult {
   photographerUrl?: string;
   isCustom: boolean;
   isLoading: boolean;
-  selectCandidate: (candidate: RecipeImageCandidate) => void;
-  resetToDefault: () => void;
+  selectCandidate: (candidate: RecipeImageCandidate) => boolean;
+  resetToDefault: () => boolean;
 }
 
 /**
@@ -66,12 +66,12 @@ export function useRecipeImagePreference(recipeId: string, keyword: string): Use
     };
   }, [recipeId]);
 
-  const selectCandidate = (candidate: RecipeImageCandidate) => {
-    recipeImagePreferenceService.setPreference(recipeId, candidate);
+  const selectCandidate = (candidate: RecipeImageCandidate): boolean => {
+    return recipeImagePreferenceService.setPreference(recipeId, candidate);
   };
 
-  const resetToDefault = () => {
-    recipeImagePreferenceService.clearPreference(recipeId);
+  const resetToDefault = (): boolean => {
+    return recipeImagePreferenceService.clearPreference(recipeId);
   };
 
   const isCustom = preference !== null;

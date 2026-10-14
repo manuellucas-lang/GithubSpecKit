@@ -47,13 +47,15 @@ export interface IRecipeImagePreferenceService {
 
   /**
    * Guarda una nueva imagen seleccionada para la receta y despacha el evento de sincronización.
+   * Devuelve true si la persistencia fue exitosa, o false si falló el almacenamiento.
    */
-  setPreference(recipeId: string, candidate: RecipeImageCandidate): void;
+  setPreference(recipeId: string, candidate: RecipeImageCandidate): boolean;
 
   /**
    * Elimina la personalización de la receta para restablecer la imagen inicial por defecto.
+   * Devuelve true si la eliminación fue exitosa, o false si falló el almacenamiento.
    */
-  clearPreference(recipeId: string): void;
+  clearPreference(recipeId: string): boolean;
 
   /**
    * Obtiene todas las personalizaciones almacenadas indexadas por recipeId.
@@ -80,7 +82,7 @@ export interface RecipeImageCarouselModalProps {
   recipeTitle: string;
   keyword: string;
   currentImageUrl?: string;
-  onSelectImage: (candidate: RecipeImageCandidate) => void;
+  onSelectImage: (candidate: RecipeImageCandidate) => boolean;
   onResetDefault: () => void;
   onClose: () => void;
 }

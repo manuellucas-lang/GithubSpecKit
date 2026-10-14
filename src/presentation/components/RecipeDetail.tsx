@@ -154,8 +154,11 @@ export const RecipeDetail: React.FC<RecipeDetailProps> = ({ recipe, onBack }) =>
           keyword={recipe.keyword}
           currentImageUrl={imageUrl}
           onSelectImage={candidate => {
-            selectCandidate(candidate);
-            setIsCarouselOpen(false);
+            const saved = selectCandidate(candidate);
+            if (saved) {
+              setIsCarouselOpen(false);
+            }
+            return saved;
           }}
           onResetDefault={() => {
             resetToDefault();

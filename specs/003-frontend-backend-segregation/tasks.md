@@ -11,49 +11,51 @@ Las tareas se ordenan cronológicamente por fases y dependencias. Las tareas mar
 
 ---
 
-## Phase 1: Monorepo Workspaces & Shared Contracts Setup
+## Phase 1: Shared Models, DTOs & Tooling Setup
 
-- [ ] T001 Configurar `package.json` raíz con configuración de npm workspaces (`workspaces: ["packages/*"]`) y scripts unificados (`dev`, `build`, `test`, `typecheck`).
-- [ ] T002 [P] Crear el paquete `packages/shared/package.json` y `packages/shared/tsconfig.json`.
-- [ ] T003 [P] Extraer y definir modelos de dominio en `packages/shared/src/models/` (`recipe.ts`, `recipe_image_candidate.ts`, `recipe_image_preference.ts`, `weekly_plan.ts`).
-- [ ] T004 [P] Definir DTOs y esquemas de validación Zod en `packages/shared/src/dto/` (`recipe.dto.ts`, `image.dto.ts`, `planner.dto.ts`, `error.dto.ts`).
-- [ ] T005 [P] Crear exportación pública centralizada en `packages/shared/src/index.ts` y compilar el paquete compartido.
+- [ ] T001 Crear directorio `shared/` con subdirectorios `models/`, `dto/` y punto de exportación `shared/index.ts`.
+- [ ] T002 [P] Extraer y definir modelos de dominio limpios en `shared/models/` (`allergen.ts`, `cooking_time.ts`, `ingredient.ts`, `recipe.ts`, `recipe_image_candidate.ts`, `recipe_image_preference.ts`, `weekly_plan.ts`, `shopping_list.ts`).
+- [ ] T003 [P] Definir DTOs y esquemas de validación Zod en `shared/dto/` (`recipe.dto.ts`, `image.dto.ts`, `planner.dto.ts`, `error.dto.ts`).
+- [ ] T004 Configurar path aliases en `tsconfig.json` (`@shared/*`, `@frontend/*`, `@backend/*`).
 
 ---
 
 ## Phase 2: Backend Architecture & Persistence (TDD)
 
-- [ ] T006 Inicializar `packages/backend/package.json`, `packages/backend/tsconfig.json` y `packages/backend/vitest.config.ts`.
-- [ ] T007 Implementar conexión SQLite y ejecución de migraciones DDL con modo WAL en `packages/backend/src/infrastructure/database/sqlite.ts`.
-- [ ] T008 Implementar seeder del catálogo inicial de recetas en `packages/backend/src/infrastructure/database/seeds/recipes.seed.ts`.
-- [ ] T009 [P] Crear pruebas de contrato con Supertest para `GET /api/v1/health` y `GET /api/v1/recipes` en `packages/backend/src/tests/contract/recipes.contract.test.ts`.
-- [ ] T010 [P] Crear pruebas de contrato con Supertest para `GET /api/v1/images/candidates` en `packages/backend/src/tests/contract/images.contract.test.ts`.
-- [ ] T011 [P] Crear pruebas de contrato con Supertest para `GET/PUT/DELETE /api/v1/preferences` en `packages/backend/src/tests/contract/preferences.contract.test.ts`.
-- [ ] T012 [P] Crear pruebas de contrato con Supertest para `GET/PUT /api/v1/planner` y `GET /api/v1/shopping-list` en `packages/backend/src/tests/contract/planner.contract.test.ts`.
-- [ ] T013 Implementar `SQLiteRecipeRepository` en `packages/backend/src/infrastructure/repositories/sqlite_recipe_repository.ts`.
-- [ ] T014 Implementar `SQLitePreferenceRepository` en `packages/backend/src/infrastructure/repositories/sqlite_preference_repository.ts`.
-- [ ] T015 Implementar `SQLitePlannerRepository` en `packages/backend/src/infrastructure/repositories/sqlite_planner_repository.ts`.
-- [ ] T016 Implementar pasarela segura de imágenes Unsplash con caché y fallback en `packages/backend/src/infrastructure/external/unsplash_image_provider.ts`.
-- [ ] T017 Configurar servidor Fastify/Express con plugins de seguridad (Helmet, CORS, Rate Limit) y logging Pino en `packages/backend/src/app.ts` y `server.ts`.
-- [ ] T018 Implementar y registrar rutas `/api/v1/recipes`, `/api/v1/images`, `/api/v1/preferences`, `/api/v1/planner`, `/api/v1/shopping-list` y `/health`.
+- [ ] T005 Instalar dependencias del backend (`fastify`, `@fastify/cors`, `@fastify/helmet`, `@fastify/rate-limit`, `better-sqlite3`, `@types/better-sqlite3`).
+- [ ] T006 Implementar conexión SQLite, pragmas WAL y migraciones DDL automáticas en `backend/database/sqlite.ts`.
+- [ ] T007 Implementar seeder del catálogo inicial de recetas en `backend/database/seeds/recipes.seed.ts`.
+- [ ] T008 [P] Crear pruebas de contrato con Supertest/Fastify inject para `GET /api/v1/health` y `GET /api/v1/recipes` en `tests/backend/recipes.contract.test.ts`.
+- [ ] T009 [P] Crear pruebas de contrato para `GET /api/v1/images/candidates` en `tests/backend/images.contract.test.ts`.
+- [ ] T010 [P] Crear pruebas de contrato para `GET/PUT/DELETE /api/v1/preferences` en `tests/backend/preferences.contract.test.ts`.
+- [ ] T011 [P] Crear pruebas de contrato para `GET/PUT /api/v1/planner` y `GET /api/v1/shopping-list` en `tests/backend/planner.contract.test.ts`.
+- [ ] T012 Implementar repositorios SQLite (`SQLiteRecipeRepository`, `SQLitePreferenceRepository`, `SQLitePlannerRepository`) en `backend/repositories/`.
+- [ ] T013 Implementar pasarela segura de imágenes Unsplash con caché en memoria y fallback SVG en `backend/services/image_provider_gateway.ts`.
+- [ ] T014 Configurar servidor Fastify con plugins de seguridad (Helmet, CORS, Rate Limit) y logging Pino en `backend/app.ts` y `backend/server.ts`.
+- [ ] T015 Implementar y registrar controladores REST en `backend/controllers/` (`recipe_controller.ts`, `image_controller.ts`, `preference_controller.ts`, `planner_controller.ts`, `health_controller.ts`).
 
 ---
 
 ## Phase 3: Frontend Refactoring & API Client Integration
 
-- [ ] T019 Migrar estructura cliente actual a `packages/frontend/` actualizando `package.json` para depender de `@recipe-app/shared`.
-- [ ] T020 Configurar proxy `/api` hacia `http://localhost:4000` en `packages/frontend/vite.config.ts`.
-- [ ] T021 Implementar cliente HTTP tipado `ApiClient` en `packages/frontend/src/infrastructure/api/api_client.ts`.
-- [ ] T022 Adaptar `RecipeService` en el frontend para consumir `GET /api/v1/recipes` a través de `ApiClient`.
-- [ ] T023 Adaptar `RecipeImagePreferenceService` en el frontend para sincronizar contra `PUT/DELETE /api/v1/preferences` con fallback optimista.
-- [ ] T024 Adaptar `PlannerService` en el frontend para sincronizar el menú semanal contra `GET/PUT /api/v1/planner`.
-- [ ] T025 Actualizar componentes (`RecipeCatalog`, `RecipeDetail`, `RecipeImageCarouselModal`, `WeeklyPlanner`) para manejar estados de carga y error del servidor.
+- [ ] T016 Mover componentes, hooks, estilos y entrypoints de `src/presentation/` y `src/` a `frontend/`.
+- [ ] T017 Configurar proxy de desarrollo en `vite.config.ts` (`/api` -> `http://localhost:4000`) y actualizar `index.html` para apuntar a `/frontend/main.tsx`.
+- [ ] T018 Implementar cliente HTTP tipado `ApiClient` en `frontend/api/api_client.ts`.
+- [ ] T019 Adaptar servicios en `frontend/services/` (`RecipeService`, `RecipeImagePreferenceService`, `PlannerService`) para consumir el backend con sincronización optimista.
 
 ---
 
-## Phase 4: Integration Verification & Validation
+## Phase 4: Migration Cleanup & Test Consolidation
 
-- [ ] T026 Ejecutar suite de pruebas completa en todos los paquetes (`npm test`).
-- [ ] T027 Ejecutar verificación estricta de tipos en la raíz (`npm run typecheck`).
-- [ ] T028 Ejecutar build de producción unificado (`npm run build`).
-- [ ] T029 Validar flujo de usuario de extremo a extremo: catálogo -> detalle -> selección de imagen en carrusel -> persistencia en backend -> planificador semanal.
+- [ ] T020 Reubicar pruebas de componentes existentes de `src/tests/` a `tests/frontend/` actualizando imports hacia `@frontend/*` y `@shared/*`.
+- [ ] T021 Eliminar de forma segura el directorio legado `src/`.
+- [ ] T022 Actualizar scripts en `package.json` para ejecución concurrente (`npm run dev`), build unificado (`npm run build`), y test (`npm test`).
+
+---
+
+## Phase 5: Verification, Convergence & Documentation
+
+- [ ] T023 Ejecutar suite de pruebas completa en `tests/` (`npm test`).
+- [ ] T024 Ejecutar verificación estricta de tipos (`npm run typecheck`).
+- [ ] T025 Ejecutar build de producción unificado (`npm run build`).
+- [ ] T026 Validar flujo de usuario de extremo a extremo sin regresiones en la interfaz ni en la persistencia.

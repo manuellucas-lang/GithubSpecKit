@@ -11,7 +11,7 @@
 - [x] **Principio II (Test-First Quality Assurance)**: TDD mandatorio con pruebas de contrato HTTP y pruebas unitarias definidas en `tasks.md`.
 - [x] **Principio III (CLI-First & Text Protocol)**: API REST estándar sobre HTTP/JSON sin protocolos propietarios cerrados.
 - [x] **Principio IV (CI & Observability)**: Verificación estricta en pipeline (`npm run typecheck`, `npm test`, `npm run build`), healthcheck `/api/v1/health` y logging Pino.
-- [x] **Principio V (Simplicity & YAGNI)**: npm workspaces nativo y SQLite embebido; sin complejidad innecesaria de Docker obligatorio para desarrollo local.
+- [x] **Principio V (Simplicity & YAGNI)**: Segregación directa en raíz (`frontend/`, `backend/`, `shared/`) eliminando la sobrecarga y complejidad de subpaquetes en `packages/`. Persistencia SQLite embebida sin requerir Docker para desarrollo local.
 - [x] **Zero Emojis**: Ningún emoji en código, interfaz de usuario o respuestas del sistema.
 - [x] **No Any**: Tipado TypeScript 100% estricto con DTOs compartidos.
 
@@ -19,7 +19,7 @@
 
 ## 2. Architecture Readiness
 
-- [x] Workspaces delimitados (`packages/shared`, `packages/backend`, `packages/frontend`).
+- [x] Directorios raíz delimitados (`frontend/`, `backend/`, `shared/`, `tests/`).
 - [x] Contratos DTO formalizados para recetas, imágenes, preferencias y planificador semanal.
 - [x] Proxy de desarrollo Vite configurado para comunicación sin fricción de CORS.
 - [x] Estrategia de seguridad definida para ocultar claves de APIs externas en el servidor.

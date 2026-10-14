@@ -27,7 +27,7 @@
 ## 2. TypeScript Data Transfer Objects (DTOs)
 
 ```typescript
-// packages/shared/src/dto/recipe.dto.ts
+// shared/dto/recipe.dto.ts
 
 export interface RecipeDto {
   id: string;
@@ -36,7 +36,7 @@ export interface RecipeDto {
   prepTimeMinutes: number;
   cookTimeMinutes: number;
   servings: number;
-  difficulty: 'Fácil' | 'Media' | 'Difícil';
+  difficulty: 'Fácil' | 'Intermedio' | 'Avanzado';
   cuisine: string;
   tags: string[];
   allergens: string[];
@@ -67,7 +67,7 @@ export interface RecipeListResponseDto {
 ```
 
 ```typescript
-// packages/shared/src/dto/image.dto.ts
+// shared/dto/image.dto.ts
 
 export interface ImageCandidatesQueryDto {
   keyword: string;
@@ -103,10 +103,10 @@ export interface SavePreferenceRequestDto {
 ```
 
 ```typescript
-// packages/shared/src/dto/planner.dto.ts
+// shared/dto/planner.dto.ts
 
 export type MealType = 'lunch' | 'dinner';
-export type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+export type DayOfWeek = 'lunes' | 'martes' | 'miercoles' | 'jueves' | 'viernes' | 'sabado' | 'domingo';
 
 export interface PlannedMealDto {
   recipeId: string;
@@ -123,11 +123,11 @@ export interface WeeklyPlanDto {
 }
 
 export interface ShoppingListItemDto {
-  id: string;
+  key: string;
   name: string;
-  amount: number;
+  totalQuantity: number;
   unit: string;
-  category: string;
+  sourceRecipes: string[];
   checked: boolean;
 }
 
@@ -144,6 +144,8 @@ export interface ShoppingListDto {
 Toda respuesta con código HTTP 4xx o 5xx sigue la estructura estandarizada:
 
 ```typescript
+// shared/dto/error.dto.ts
+
 export interface ApiErrorResponseDto {
   type: string;
   title: string;

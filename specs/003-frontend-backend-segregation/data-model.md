@@ -8,7 +8,7 @@
 
 ## 1. Domain Entities & Database Relational Schema (SQLite)
 
-El backend utiliza SQLite como motor de persistencia ACID embebido. La base de datos almacena el catálogo maestro de recetas, las preferencias de imagen personalizadas y los planes semanales.
+El backend utiliza SQLite como motor de persistencia ACID embebido (`data/recipes.db`). La base de datos almacena el catálogo maestro de recetas, las preferencias de imagen personalizadas y los planes semanales.
 
 ```mermaid
 erDiagram
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS recipes (
     prep_time_minutes INTEGER NOT NULL,
     cook_time_minutes INTEGER NOT NULL,
     servings INTEGER NOT NULL,
-    difficulty TEXT NOT NULL CHECK(difficulty IN ('Fácil', 'Media', 'Difícil')),
+    difficulty TEXT NOT NULL CHECK(difficulty IN ('Fácil', 'Intermedio', 'Avanzado')),
     cuisine TEXT NOT NULL,
     image_url TEXT NOT NULL,
     instructions_json TEXT NOT NULL,
@@ -133,7 +133,7 @@ CREATE TABLE IF NOT EXISTS weekly_plans (
 CREATE TABLE IF NOT EXISTS planned_meals (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     week_id TEXT NOT NULL REFERENCES weekly_plans(week_id) ON DELETE CASCADE,
-    day_of_week TEXT NOT NULL CHECK(day_of_week IN ('monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday')),
+    day_of_week TEXT NOT NULL CHECK(day_of_week IN ('lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado', 'domingo')),
     meal_type TEXT NOT NULL CHECK(meal_type IN ('lunch', 'dinner')),
     recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
     servings INTEGER NOT NULL DEFAULT 2,
@@ -145,5 +145,5 @@ CREATE TABLE IF NOT EXISTS planned_meals (
 
 ## 3. Migration & Seeding Lifecycle
 
-- En el arranque del backend (`backend/src/infrastructure/database/sqlite.ts`), el servicio ejecuta automáticamente las migraciones DDL con `IF NOT EXISTS` y modo `PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;`.
-- Si la tabla `recipes` está vacía, se ejecuta un *seeder* inicial que importa el catálogo existente de recetas culinarias garantizando continuidad completa con la experiencia actual.
+- En el arranque del backend (`backend/database/sqlite.ts`), el servicio ejecuta automáticamente las migraciones DDL con `IF NOT EXISTS` y modo `PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;`.
+- Si la tabla `recipes` está vacía, se ejecuta un *seeder* inicial (`backend/database/seeds/recipes.seed.ts`) que importa el catálogo existente de recetas culinarias garantizando continuidad completa con la experiencia actual.

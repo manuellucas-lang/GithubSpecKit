@@ -3,99 +3,109 @@
 **Feature Branch**: `feature/003-frontend-backend-segregation`  
 **Created**: 2026-10-14  
 **Status**: Approved Specification  
-**Input**: Requerimiento de usuario: "planify a frontend backend segregation to make the app professional"
+**Input**: Requerimiento de usuario: "refactor src folder into backend and frontend folders not add into packages folder, to have a frontend and backend folder where right now are src folder"
 
 ---
 
 ## 1. Executive Summary
 
-La aplicación culinaria actual opera como una SPA (*Single Page Application*) cliente pura donde los datos mock de recetas, las consultas a APIs externas de imágenes y la persistencia en `localStorage` conviven en el mismo paquete cliente. Para alcanzar un estándar profesional de ingeniería de software, se requiere una segregación estricta entre Frontend y Backend en una estructura monorepositorio con espacios de trabajo (*workspaces*).
+La aplicación actual almacena todo su código bajo el directorio `src/`, combinando lógica de presentación React, llamadas directas a APIs externas de imágenes y persistencia confinada a `localStorage`. Para profesionalizar la arquitectura sin incurrir en la sobrecarga ni complejidad de tooling de un monorepositorio con directorio `packages/`, se refactorizará el contenido de `src/` directamente en tres directorios especializados en la raíz del proyecto:
 
-Esta arquitectura desacopla la capa de presentación (React 19 + TypeScript + Vite) del servidor de servicios de aplicación (Node.js + TypeScript + Fastify/Express con persistencia relacional SQLite), centralizando las reglas de negocio, protegiendo credenciales de APIs de terceros mediante un proxy seguro, y exponiendo una interfaz RESTful estructurada bajo contratos compartidos (*Shared DTOs*).
+1. `frontend/`: Capa cliente React 19 + TypeScript + Vite (componentes, hooks, vistas, estilos, y cliente API).
+2. `backend/`: Servidor de servicios RESTful Node.js + TypeScript + Fastify con persistencia ACID relacional en SQLite (`better-sqlite3`).
+3. `shared/`: Modelos de dominio universales, DTOs de comunicación y esquemas de validación Zod compartidos directamente entre cliente y servidor.
+
+Esta segregación desacopla la presentación de las reglas de negocio, custodia claves de API secretas en el servidor y prepara la base para persistencia multi-sesión y evolución a perfiles de usuario.
 
 ---
 
 ## 2. User Scenarios & Testing
 
-### User Story 1 - Consulta y Filtrado de Catálogo a través de API REST (Priority: P1)
+### User Story 1 - Catálogo Centralizado Servido por Backend REST (Priority: P1)
 
-Como usuario de la aplicación, quiero explorar el catálogo de recetas y aplicar filtros dinámicos (búsqueda textual, tiempo máximo de cocción y etiquetas) obteniendo los datos desde un servicio backend centralizado, para asegurar coherencia y tiempos de respuesta ágiles.
+Como usuario de la aplicación, quiero explorar el catálogo de recetas y filtrar por texto o tiempo de cocción obteniendo los datos desde el servidor backend en `http://localhost:4000/api/v1/recipes`, para que la información esté centralizada y no incrustada en el bundle de la interfaz.
 
-- **Why this priority**: Es la funcionalidad troncal de la aplicación. Desacoplar la fuente de recetas del bundle cliente es la base indispensable de la arquitectura cliente-servidor.
-- **Independent Test**: Se puede verificar de forma autónoma realizando llamadas HTTP `GET /api/v1/recipes?search=paella&maxTime=45` al servidor backend y comprobando que el frontend renderiza la lista reactivamente sin depender de arrays estáticos en memoria.
+- **Why this priority**: Es la funcionalidad troncal. Reemplaza el mock local de recetas en el cliente por un servicio HTTP robusto.
+- **Independent Test**: Ejecutar `curl http://localhost:4000/api/v1/recipes` y verificar que el endpoint retorna el catálogo tipado con status 200 y filtrado funcional por query parameters (`search`, `maxCookingMinutes`).
 - **Acceptance Scenarios**:
-  1. **Given** un catálogo poblado en el backend, **When** el cliente solicita `GET /api/v1/recipes`, **Then** el servidor responde con status 200 y una lista paginada/filtrable de recetas tipadas.
-  2. **Given** un filtro de búsqueda con parámetros `search` y `maxCookingMinutes`, **When** el usuario interactúa con la barra de búsqueda en el frontend, **Then** el cliente emite una petición con query params y el backend retorna únicamente los registros coincidentes.
-  3. **Given** que el backend se encuentra temporalmente inaccesible, **When** el cliente inicia la carga, **Then** el frontend presenta un estado de error observable con reintento sin romper la interfaz.
+  1. **Given** el servidor backend en ejecución, **When** el cliente solicita `GET /api/v1/recipes`, **Then** recibe la lista de recetas con tiempo de respuesta < 50 ms.
+  2. **Given** parámetros de filtro `search=paella&maxCookingMinutes=45`, **When** se envía la solicitud al backend, **Then** responde únicamente con las recetas que cumplen ambos criterios.
+  3. **Given** que el backend no está disponible, **When** la aplicación frontend carga, **Then** muestra un estado de error observable con botón de reintento.
 
 ---
 
 ### User Story 2 - Proxy Seguro y Caché de Imágenes Candidatas en Backend (Priority: P1)
 
-Como usuario que personaliza imágenes de recetas, quiero que la búsqueda y obtención de imágenes candidatas se tramite a través de un proxy backend, protegiendo las credenciales de proveedores externos (Unsplash API) y optimizando el consumo de cuota mediante caché server-side.
+Como usuario que personaliza imágenes de recetas, quiero que las fotos alternativas del carrusel se consulten a través de `GET /api/v1/images/candidates`, protegiendo la clave de API de Unsplash en el servidor y optimizando la cuota con caché en memoria.
 
-- **Why this priority**: Exponer tokens de autenticación o API keys en el bundle frontend es una vulnerabilidad de seguridad crítica. El backend debe actuar como custodio de secretos y pasarela de resiliencia.
-- **Independent Test**: Comprobar que el endpoint `GET /api/v1/images/candidates?keyword=paella&count=6` responde con candidatos enriquecidos sin que el frontend incluya tokens ni URLs directas de proveedores externos en sus peticiones de red.
+- **Why this priority**: Seguridad fundamental. Las credenciales de Unsplash nunca deben viajar al navegador del cliente.
+- **Independent Test**: Comprobar que `GET /api/v1/images/candidates?keyword=paella&count=6` devuelve candidatos válidos desde el backend sin que el frontend realice llamadas directas a `api.unsplash.com`.
 - **Acceptance Scenarios**:
-  1. **Given** una palabra clave válida, **When** el cliente solicita candidatos a través del backend, **Then** el servidor consulta su caché o el proveedor remoto con su API key secreta y devuelve la colección normalizada (mínimo 3 candidatos).
-  2. **Given** una caída o agotamiento de cuota del proveedor externo, **When** el backend procesa la solicitud, **Then** genera y devuelve de forma transparente la suite de respaldo vectorial SVG garantizando continuidad de servicio.
-  3. **Given** consultas repetidas para la misma receta, **When** varios clientes solicitan candidatos, **Then** el backend sirve la respuesta desde su caché en memoria / redis-ready en < 50 ms.
+  1. **Given** una palabra clave válida, **When** el backend recibe la petición, **Then** utiliza su clave de entorno para consultar al proveedor externo o servir desde caché local, retornando al menos 3 candidatos.
+  2. **Given** un fallo de red externo o límite de cuota, **When** el backend detecta el error, **Then** genera y devuelve de forma transparente candidatos vectoriales SVG alternativos.
+  3. **Given** consultas repetidas para la misma palabra clave, **When** el backend recibe peticiones subsiguientes, **Then** responde desde la caché en memoria en < 10 ms.
 
 ---
 
-### User Story 3 - Persistencia Centralizada de Preferencias y Planificación Semanal (Priority: P2)
+### User Story 3 - Persistencia de Preferencias y Plan Semanal en SQLite (Priority: P2)
 
-Como usuario habitual, quiero que mis imágenes seleccionadas y mi planificación de menú semanal se almacenen en una base de datos backend, permitiendo la sincronización entre sesiones y navegadores.
+Como usuario del planificador y del catálogo, quiero que mis imágenes seleccionadas y mi menú semanal se almacenen en una base de datos SQLite en el servidor, garantizando persistencia durable.
 
-- **Why this priority**: `localStorage` está confinado a un único navegador y dispositivo. La persistencia en backend profesionaliza la aplicación permitiendo persistencia multi-sesión y evolución a perfiles de usuario.
-- **Independent Test**: Modificar la imagen de una receta o planificar un día mediante `PUT /api/v1/preferences/:recipeId` y `PUT /api/v1/planner`, y verificar mediante un cliente HTTP independiente o una nueva sesión de navegador que el estado persiste fielmente.
+- **Why this priority**: Supera las limitaciones de `localStorage` y sienta las bases para soporte multi-usuario.
+- **Independent Test**: Enviar `PUT /api/v1/preferences/:recipeId` con un candidato de imagen y verificar mediante `GET /api/v1/preferences` que la selección persiste entre reinicios del cliente.
 - **Acceptance Scenarios**:
-  1. **Given** una receta existente, **When** el usuario selecciona una imagen candidata en el carrusel, **Then** el frontend invoca `PUT /api/v1/preferences/:recipeId` y el backend persiste la preferencia en la base de datos relacional.
-  2. **Given** un menú semanal planificado, **When** el usuario asigna una receta al lunes en el almuerzo, **Then** el backend actualiza la entidad del planificador y computa la lista de compras asociada (`GET /api/v1/shopping-list`).
-  3. **Given** una preferencia almacenada, **When** el usuario pulsa restablecer imagen por defecto, **Then** se ejecuta `DELETE /api/v1/preferences/:recipeId` y el backend elimina el registro devolviendo status 204/200.
+  1. **Given** un candidato seleccionado en el carrusel, **When** el frontend invoca `PUT /api/v1/preferences/:recipeId`, **Then** el backend almacena el registro en SQLite y retorna status 200 con la preferencia actualizada.
+  2. **Given** un menú semanal modificado, **When** el usuario asigna una receta a un día en el planificador, **Then** el backend guarda la asignación y computa la lista de compras agregada (`GET /api/v1/shopping-list`).
+  3. **Given** una preferencia almacenada, **When** el usuario pulsa restablecer a imagen por defecto, **Then** el endpoint `DELETE /api/v1/preferences/:recipeId` elimina la entrada y retorna confirmación.
 
 ---
 
-### User Story 4 - Contratos Compartidos y Validación Estricta de Tipos (Priority: P2)
+### User Story 4 - Contratos de Dominio Compartidos sin Duplicación de Código (Priority: P2)
 
-Como desarrollador del proyecto, quiero que los modelos de dominio, DTOs y validaciones de esquema sean compartidos entre frontend y backend a través de un paquete interno (`@recipe-app/shared`), evitando divergencias de tipos y garantizando type-safety de extremo a extremo.
+Como desarrollador, quiero que los modelos y DTOs residan en un directorio `shared/` común accesible por `frontend/` y `backend/` mediante path aliases de TypeScript (`@shared/*`), garantizando consistencia de tipos sin requerir publicación de paquetes npm.
 
-- **Why this priority**: Garantiza que ningún cambio en la API rompa el cliente en tiempo de compilación (`npm run typecheck`).
-- **Independent Test**: Modificar un campo en un contrato compartido y verificar que tanto el backend como el frontend reportan errores de compilación estática si no se alinean.
+- **Why this priority**: Garantiza type-safety estricto de extremo a extremo sin complejidad de paquetes separados.
+- **Independent Test**: Ejecutar `npm run typecheck` y verificar que tanto el backend como el frontend consumen `@shared/*` sin errores de compilación ni uso de `any`.
 - **Acceptance Scenarios**:
-  1. **Given** esquemas de validación Zod en el paquete compartido, **When** el backend recibe un payload inválido en un endpoint `PUT`/`POST`, **Then** rechaza la solicitud con status 400 y mensaje detallado de validación.
-  2. **Given** las interfaces compartidas, **When** el cliente tipa las respuestas del API client, **Then** no se utiliza `any` en ninguna capa de la aplicación.
+  1. **Given** esquemas Zod en `shared/dto/`, **When** el backend recibe una petición con campos inválidos, **Then** responde con status 400 y detalle de validación RFC 7807.
+  2. **Given** las interfaces en `shared/models/`, **When** el frontend tipa sus hooks y componentes, **Then** se valida en tiempo de compilación la coincidencia con los datos del servidor.
 
 ---
 
 ## 3. Functional Requirements (FR)
 
-- **FR-001**: La raíz del repositorio debe organizarse en espacios de trabajo (*npm workspaces*) estructurados en `packages/frontend`, `packages/backend` y `packages/shared`.
-- **FR-002**: `packages/shared` debe contener los tipos TypeScript, constantes de dominio, interfaces DTO y esquemas de validación comunes sin dependencias de DOM ni de Node runtime.
-- **FR-003**: `packages/backend` debe implementar una API REST estructurada con Node.js, TypeScript y Fastify (o Express) sirviendo en el prefijo `/api/v1`.
-- **FR-004**: El backend debe implementar endpoints para:
-  - `GET /api/v1/recipes`: Listado de recetas con filtros (`search`, `maxCookingTime`, `difficulty`, `tags`).
+- **FR-001**: El directorio monolítico `src/` debe refactorizarse en tres directorios raíz: `frontend/`, `backend/` y `shared/`, eliminando `src/`.
+- **FR-002**: `shared/` contendrá los modelos de dominio (`models/`), DTOs de comunicación (`dto/`) y esquemas de validación Zod (`schemas/`) compartidos directamente entre cliente y servidor.
+- **FR-003**: `backend/` implementará un servidor RESTful con Fastify (o Express) sirviendo en el prefijo `/api/v1` con puerto por defecto `4000`.
+- **FR-004**: El backend implementará endpoints REST para:
+  - `GET /api/v1/recipes`: Listado filtrable de recetas (`search`, `maxCookingMinutes`, `difficulty`, `tag`).
   - `GET /api/v1/recipes/:id`: Detalle completo de una receta.
-  - `GET /api/v1/images/candidates`: Búsqueda de imágenes alternativas con gestión interna de API keys y fallback.
-  - `GET /api/v1/preferences`: Obtención de todas las preferencias de imagen persistidas.
-  - `PUT /api/v1/preferences/:recipeId`: Persistencia de selección de imagen para una receta.
+  - `GET /api/v1/images/candidates`: Búsqueda segura de imágenes con caché y respaldo SVG.
+  - `GET /api/v1/preferences`: Obtención de todas las preferencias de imagen.
+  - `PUT /api/v1/preferences/:recipeId`: Persistencia de selección de imagen.
   - `DELETE /api/v1/preferences/:recipeId`: Restablecimiento de imagen a la original.
   - `GET /api/v1/planner`: Obtención del plan semanal actual.
-  - `PUT /api/v1/planner`: Actualización de asignaciones del planificador semanal.
-  - `GET /api/v1/shopping-list`: Cálculo y agregación de lista de compras en base al plan semanal.
-  - `GET /api/v1/health`: Endpoint de diagnóstico y salud del servicio.
-- **FR-005**: El backend debe persistir los datos en una base de datos relacional ligera SQLite gestionada mediante repositorio tipado, permitiendo ejecución inmediata sin requerir la instalación de servicios externos en desarrollo local.
-- **FR-006**: El backend debe incorporar middleware de seguridad estándar: Helmet para cabeceras HTTP, CORS configurado para el origen del frontend, limitador de tasa (*rate limiting*) y logging estructurado en formato JSON (Pino).
-- **FR-007**: `packages/frontend` debe configurar un proxy en Vite (`vite.config.ts`) para redirigir las peticiones `/api` al backend local durante el desarrollo sin problemas de CORS.
-- **FR-008**: `packages/frontend` debe sustituir el almacenamiento exclusivo en `localStorage` por un cliente HTTP tipado (`ApiClient`) con soporte para sincronización optimista y manejo de errores de conexión.
-- **FR-009**: La suite de scripts en la raíz del monorepositorio debe permitir `npm run dev` (ejecución concurrente de frontend y backend), `npm run build`, `npm run typecheck` y `npm test` de forma unificada.
+  - `PUT /api/v1/planner`: Actualización de asignaciones del plan semanal.
+  - `GET /api/v1/shopping-list`: Cálculo y agregación de lista de compras.
+  - `GET /api/v1/health`: Diagnóstico de salud y estado del servicio.
+- **FR-005**: El backend persistirá los datos en SQLite embebido (`better-sqlite3`) con modo WAL activado y migraciones automáticas en arranque.
+- **FR-006**: El backend integrará middleware de seguridad: Helmet (cabeceras HTTP), CORS configurado para el frontend, Rate Limiting y logging estructurado en formato JSON con Pino.
+- **FR-007**: `frontend/` contendrá la aplicación React 19 + Vite, configurando `vite.config.ts` para redirigir peticiones `/api` al backend en `http://localhost:4000`.
+- **FR-008**: `frontend/` reemplazará las llamadas directas a almacenamiento local y APIs externas por un cliente HTTP tipado (`ApiClient`) con manejo reactivo de estados de carga y error.
+- **FR-009**: `package.json` en la raíz coordinará todos los scripts de ejecución:
+  - `npm run dev`: Ejecución concurrente de backend y frontend.
+  - `npm run dev:frontend`: Ejecución exclusiva de la interfaz Vite.
+  - `npm run dev:backend`: Ejecución exclusiva del servidor Fastify con recarga automática.
+  - `npm run build`: Compilación de producción para frontend y backend.
+  - `npm test`: Ejecución de pruebas unitarias y de contrato en `tests/`.
+  - `npm run typecheck`: Verificación estricta de TypeScript en toda la base de código.
 
 ---
 
 ## 4. Non-Functional Requirements (NFR)
 
-- **NFR-001 (Performance)**: Tiempo de respuesta del backend < 50 ms para endpoints de lectura en frío y < 10 ms para respuestas cacheadas.
-- **NFR-002 (Security)**: Ninguna clave de API secreta ni credencial privada debe exponerse en el bundle de distribución del frontend.
-- **NFR-003 (Observability)**: Toda petición HTTP al backend debe registrarse con ID de traza, método, ruta, código de estado y tiempo de respuesta en formato JSON estructurado.
-- **NFR-004 (Reliability)**: El servidor debe manejar excepciones no controladas sin terminar el proceso de forma anómala, retornando respuestas HTTP 500 normalizadas en formato RFC 7807 (Problem Details).
-- **NFR-005 (Constitutional Alignment)**: Conformidad total con la Constitución del proyecto: desarrollo guiado por pruebas (TDD), estricto `no-any` en TypeScript, y cero emojis en código e interfaz.
+- **NFR-001 (Performance)**: Tiempo de respuesta del backend < 50 ms para lecturas en frío y < 10 ms para respuestas cacheadas en memoria.
+- **NFR-002 (Security)**: Claves secretas de APIs externas (Unsplash) custodiadas exclusivamente en variables de entorno del servidor.
+- **NFR-003 (Observability)**: Logging estructurado en formato JSON (Pino) con ID de petición, método, ruta, código de estado y latencia.
+- **NFR-004 (Reliability)**: Manejo centralizado de excepciones con respuestas de error estandarizadas en formato RFC 7807 (Problem Details).
+- **NFR-005 (Constitutional Alignment)**: Cumplimiento de la Constitución del proyecto: cero emojis en código e interfaz, 100% tipado estricto sin `any`, y TDD mandatorio con pruebas previas a la implementación.

@@ -8,14 +8,28 @@
 ## 1. Prerequisites
 
 - **Node.js**: v20+ LTS
-- **npm**: v10+ (con soporte para npm workspaces)
+- **npm**: v10+
 
 ---
 
-## 2. Quickstart Execution Commands
+## 2. Directory Layout
+
+```text
+githubSpecKit/
+├── frontend/             # React 19 + TypeScript + Vite SPA
+├── backend/              # Node.js + Fastify REST API Server
+├── shared/               # Domain Models, DTOs & Validation Schemas
+├── tests/                # Frontend & Backend Automated Tests
+├── data/                 # SQLite Database (recipes.db)
+└── specs/                # Spec Kit Specifications
+```
+
+---
+
+## 3. Execution Commands
 
 ### Installation
-Instala las dependencias en la raíz del monorepositorio resolviendo los enlaces simbólicos de los espacios de trabajo (`shared`, `backend`, `frontend`):
+Instala las dependencias del proyecto en la raíz:
 ```bash
 npm install
 ```
@@ -28,33 +42,43 @@ npm run dev
 
 El servidor Vite en `http://localhost:5173` redirige automáticamente cualquier petición `/api/*` a `http://localhost:4000/api/*`.
 
+### Independent Execution
+- **Solo Frontend**:
+  ```bash
+  npm run dev:frontend
+  ```
+- **Solo Backend**:
+  ```bash
+  npm run dev:backend
+  ```
+
 ---
 
-## 3. Automated Verification Gates
+## 4. Automated Verification Gates
 
 ### 1. Static Type Checking
-Verifica la conformidad estricta de tipos en todos los paquetes del monorepositorio:
+Verifica la conformidad estricta de tipos en `frontend/`, `backend/` y `shared/`:
 ```bash
 npm run typecheck
 ```
 
 ### 2. Automated Test Suite (Unit & Contract)
-Ejecuta las pruebas en frontend, backend y contratos compartidos:
+Ejecuta las pruebas en frontend y backend:
 ```bash
 npm test
 ```
 
 ### 3. Production Build Validation
-Compila los paquetes en orden de dependencias (`shared` -> `backend` + `frontend`):
+Compila los componentes de frontend y el servidor backend:
 ```bash
 npm run build
 ```
 
 ---
 
-## 4. Manual API Verification with cURL
+## 5. Manual API Verification with cURL
 
-Una vez iniciado el backend (`npm run dev`):
+Una vez iniciado el backend (`npm run dev` o `npm run dev:backend`):
 
 - **Healthcheck**:
   ```bash

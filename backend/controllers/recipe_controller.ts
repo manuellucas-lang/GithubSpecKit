@@ -2,6 +2,12 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { SQLiteRecipeRepository } from '../repositories/sqlite_recipe_repository';
 import { RecipeFilterQuerySchema } from '@shared/dto/recipe.dto';
 
+/**
+ * Registers REST API routes for recipe catalog retrieval and filtering.
+ *
+ * @param app - Fastify instance to attach routes to.
+ * @param repository - Recipe repository used to query recipe entities.
+ */
 export function registerRecipeRoutes(app: FastifyInstance, repository: SQLiteRecipeRepository): void {
   app.get('/api/v1/recipes', async (request: FastifyRequest, reply: FastifyReply) => {
     const queryResult = RecipeFilterQuerySchema.safeParse(request.query);

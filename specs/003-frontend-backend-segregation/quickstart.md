@@ -17,7 +17,7 @@
 ```text
 githubSpecKit/
 ├── frontend/             # React 19 + TypeScript + Vite SPA
-├── backend/              # Node.js + Express REST API Server
+├── backend/              # Node.js + Fastify REST API Server
 ├── shared/               # Domain Models, DTOs & Validation Schemas
 ├── tests/                # Frontend & Backend Automated Tests
 ├── data/                 # SQLite Database (recipes.db)

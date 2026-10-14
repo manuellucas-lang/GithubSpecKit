@@ -4,6 +4,12 @@ import { SQLitePlannerRepository } from '../repositories/sqlite_planner_reposito
 import { SaveDayMealRequestSchema } from '@shared/dto/planner.dto';
 import { generateShoppingListFromPlan } from '@shared/models/shopping_list';
 
+/**
+ * Registers REST API routes for weekly meal planning and shopping list aggregation.
+ *
+ * @param app - Fastify instance to attach routes to.
+ * @param repository - Planner repository managing weekly plan persistence.
+ */
 export function registerPlannerRoutes(app: FastifyInstance, repository: SQLitePlannerRepository): void {
   app.get('/api/v1/planner', async () => {
     return repository.getPlan();

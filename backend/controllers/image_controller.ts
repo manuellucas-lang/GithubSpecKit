@@ -3,6 +3,12 @@ import { z } from 'zod';
 import { ImageProviderGateway } from '../services/image_provider_gateway';
 import { ImageCandidatesQuerySchema } from '@shared/dto/image.dto';
 
+/**
+ * Registers REST API routes for external image provider candidate lookup.
+ *
+ * @param app - Fastify instance to attach routes to.
+ * @param gateway - Gateway service communicating with image providers.
+ */
 export function registerImageRoutes(app: FastifyInstance, gateway: ImageProviderGateway): void {
   app.get('/api/v1/images/candidates', async (request: FastifyRequest, reply: FastifyReply) => {
     const parseResult = ImageCandidatesQuerySchema.safeParse(request.query);

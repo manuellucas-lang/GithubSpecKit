@@ -54,12 +54,12 @@ githubSpecKit/
 │   ├── api/                             # ApiClient tipado que realiza fetch('/api/v1/...')
 │   ├── App.tsx                          # Componente raíz
 │   └── main.tsx                         # Punto de entrada de Vite
-├── backend/                             # Servidor REST API Node.js + Express
+├── backend/                             # Servidor REST API Node.js + Fastify
 │   ├── controllers/                     # Controladores REST: recipes, images, preferences, planner
 │   ├── services/                        # Lógica de dominio, pasarela de imágenes Unsplash, caché LRU
 │   ├── repositories/                    # Persistencia SQLite (better-sqlite3 con WAL mode)
 │   ├── database/                        # Conexión, esquema DDL, migraciones y seeders
-│   ├── app.ts                           # Configuración Express, middlewares (Helmet, CORS) y rutas
+│   ├── app.ts                           # Configuración Fastify, plugins de seguridad (Helmet, CORS) y rutas
 │   └── server.ts                        # Bootstrap y arranque del servidor en puerto 4000
 ├── shared/                              # Contratos, tipos y validaciones compartidas
 │   ├── models/                          # Recipe, Allergen, CookingTime, Ingredient, Preference, Plan, ShoppingList

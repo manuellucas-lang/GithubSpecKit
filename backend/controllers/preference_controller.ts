@@ -3,6 +3,12 @@ import { z } from 'zod';
 import { SQLitePreferenceRepository } from '../repositories/sqlite_preference_repository';
 import { SavePreferenceRequestSchema } from '@shared/dto/image.dto';
 
+/**
+ * Registers REST API routes for recipe image preferences management.
+ *
+ * @param app - Fastify instance to attach routes to.
+ * @param repository - Preference repository managing custom image persistence.
+ */
 export function registerPreferenceRoutes(app: FastifyInstance, repository: SQLitePreferenceRepository): void {
   app.get('/api/v1/preferences', async () => {
     return repository.getAll();

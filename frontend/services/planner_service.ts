@@ -59,10 +59,23 @@ export class PlannerService {
     }
   }
 
+  /**
+   * Retrieves the current weekly meal plan.
+   *
+   * @returns Cloned weekly plan object.
+   */
   getWeeklyPlan(): WeeklyPlan {
     return { ...this.currentPlan };
   }
 
+  /**
+   * Assigns a recipe to a specific day and meal slot.
+   *
+   * @param day - Day of the week.
+   * @param slot - Meal slot (lunch or dinner).
+   * @param recipe - Recipe to assign.
+   * @returns Updated weekly plan.
+   */
   assignMeal(day: DayOfWeek, slot: MealSlot, recipe: Recipe): WeeklyPlan {
     this.currentPlan = {
       ...this.currentPlan,
@@ -81,6 +94,13 @@ export class PlannerService {
     return this.getWeeklyPlan();
   }
 
+  /**
+   * Clears a meal assignment from a specific day and slot.
+   *
+   * @param day - Day of the week.
+   * @param slot - Meal slot.
+   * @returns Updated weekly plan.
+   */
   removeMeal(day: DayOfWeek, slot: MealSlot): WeeklyPlan {
     this.currentPlan = {
       ...this.currentPlan,
@@ -93,6 +113,11 @@ export class PlannerService {
     return this.getWeeklyPlan();
   }
 
+  /**
+   * Resets all meal assignments across the entire week.
+   *
+   * @returns Cleared weekly plan.
+   */
   clearPlan(): WeeklyPlan {
     this.currentPlan = createEmptyWeeklyPlan();
     this.persistPlan();

@@ -76,7 +76,7 @@ Como desarrollador, quiero que los modelos y DTOs residan en un directorio `shar
 
 - **FR-001**: El directorio monolítico `src/` debe refactorizarse en tres directorios raíz: `frontend/`, `backend/` y `shared/`, eliminando `src/`.
 - **FR-002**: `shared/` contendrá los modelos de dominio (`models/`) y los DTOs de comunicación con esquemas de validación Zod integrados (`dto/`) compartidos directamente entre cliente y servidor.
-- **FR-003**: `backend/` implementará un servidor RESTful con Express sirviendo en el prefijo `/api/v1` con puerto por defecto `4000`.
+- **FR-003**: `backend/` implementará un servidor RESTful con Fastify sirviendo en el prefijo `/api/v1` con puerto por defecto `4000`.
 - **FR-004**: El backend implementará endpoints REST para:
   - `GET /api/v1/recipes`: Listado filtrable de recetas (`search`, `maxCookingMinutes`, `difficulty`, `cuisine`, `tag`).
   - `GET /api/v1/recipes/:id`: Detalle completo de una receta.
@@ -97,7 +97,7 @@ Como desarrollador, quiero que los modelos y DTOs residan en un directorio `shar
 - **FR-009**: `package.json` en la raíz coordinará todos los scripts de ejecución:
   - `npm run dev`: Ejecución concurrente de backend y frontend.
   - `npm run dev:frontend`: Ejecución exclusiva de la interfaz Vite.
-  - `npm run dev:backend`: Ejecución exclusiva del servidor Express con recarga automática.
+  - `npm run dev:backend`: Ejecución exclusiva del servidor Fastify con recarga automática.
   - `npm run build`: Compilación de producción para frontend y backend.
   - `npm test`: Ejecución de pruebas unitarias y de contrato en `tests/`.
   - `npm run typecheck`: Verificación estricta de TypeScript en toda la base de código.

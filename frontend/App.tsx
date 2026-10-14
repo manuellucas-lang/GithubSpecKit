@@ -21,6 +21,7 @@ export const App: React.FC = () => {
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [isFallbackMode, setIsFallbackMode] = useState<boolean>(false);
   const [reloadKey, setReloadKey] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<ActiveTab>('catalog');
 
@@ -51,6 +52,7 @@ export const App: React.FC = () => {
         if (isMounted) {
           startTransition(() => {
             setRecipes(data);
+            setIsFallbackMode(recipeService.isFallback);
             setIsLoading(false);
           });
         }
@@ -58,6 +60,7 @@ export const App: React.FC = () => {
       .catch((err: unknown) => {
         if (isMounted) {
           setLoadError(err instanceof Error ? err.message : 'Error al conectar con el servidor');
+          setIsFallbackMode(false);
           setIsLoading(false);
         }
       });
@@ -367,6 +370,43 @@ export const App: React.FC = () => {
               onClearFilters={handleClearFilters}
               totalResultsCount={recipes.length}
             />
+
+            {/* Offline fallback indicator */}
+            {isFallbackMode && !loadError && (
+              <div
+                role="status"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 20px',
+                  backgroundColor: 'var(--color-warning-bg, #fef3c7)',
+                  color: 'var(--color-warning, #92400e)',
+                  borderRadius: 'var(--radius-md)',
+                  marginBottom: '20px',
+                  border: '1px solid rgba(217, 119, 6, 0.3)',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                }}
+              >
+                <span>Modo sin conexión: mostrando catálogo local de respaldo.</span>
+                <button
+                  onClick={() => setReloadKey(k => k + 1)}
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: '1px solid currentColor',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '4px 10px',
+                    color: 'inherit',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    fontSize: '0.8rem',
+                  }}
+                >
+                  Reconectar
+                </button>
+              </div>
+            )}
 
             {/* Recipes Grid */}
             {loadError ? (

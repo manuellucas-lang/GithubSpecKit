@@ -139,6 +139,12 @@ export class RecipeImagePreferenceService {
     }
   }
 
+  /**
+   * Retrieves the saved image preference for a specific recipe.
+   *
+   * @param recipeId - Identifier of the recipe.
+   * @returns The saved preference object or null if none is saved.
+   */
   getPreference(recipeId: string): RecipeImagePreference | null {
     if (!recipeId) return null;
     const all = this.readStorage();
@@ -146,6 +152,13 @@ export class RecipeImagePreferenceService {
     return all[recipeId] || null;
   }
 
+  /**
+   * Sets and persists a custom image candidate preference for a recipe.
+   *
+   * @param recipeId - Identifier of the recipe.
+   * @param candidate - Selected image candidate.
+   * @returns True if successfully persisted.
+   */
   setPreference(recipeId: string, candidate: RecipeImageCandidate): boolean {
     validateRecipeImageCandidate(candidate);
 
@@ -182,6 +195,12 @@ export class RecipeImagePreferenceService {
     return true;
   }
 
+  /**
+   * Clears the custom image preference for a recipe, reverting to default.
+   *
+   * @param recipeId - Identifier of the recipe.
+   * @returns True if successfully cleared.
+   */
   clearPreference(recipeId: string): boolean {
     const all = this.readStorage();
     if (all === null) {
@@ -204,10 +223,21 @@ export class RecipeImagePreferenceService {
     return true;
   }
 
+  /**
+   * Returns a map of all saved recipe image preferences.
+   *
+   * @returns Object mapping recipe ID to image preference.
+   */
   getAllPreferences(): Record<string, RecipeImagePreference> {
     return this.readStorage() || {};
   }
 
+  /**
+   * Subscribes a listener to preference changes across tabs or updates.
+   *
+   * @param callback - Callback receiving change events.
+   * @returns Unsubscribe function.
+   */
   subscribe(callback: ImagePreferenceChangeListener): () => void {
     this.listeners.add(callback);
     return () => {

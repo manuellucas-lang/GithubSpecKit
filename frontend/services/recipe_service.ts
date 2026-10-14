@@ -12,9 +12,14 @@ export interface RecipeFilterOptions {
 
 export class RecipeService {
   private localFallbackRecipes: Recipe[];
+  private isUsingFallback = false;
 
   constructor(initialRecipes: Recipe[] = seedData as unknown as Recipe[]) {
     this.localFallbackRecipes = [...initialRecipes];
+  }
+
+  get isFallback(): boolean {
+    return this.isUsingFallback;
   }
 
   async getRecipes(filters?: RecipeFilterOptions): Promise<Recipe[]> {
@@ -35,9 +40,11 @@ export class RecipeService {
         });
       }
 
+      this.isUsingFallback = false;
       return recipes;
     } catch {
       // Graceful fallback to embedded recipes if offline or during server bootstrap
+      this.isUsingFallback = true;
       return this.filterLocally(filters);
     }
   }

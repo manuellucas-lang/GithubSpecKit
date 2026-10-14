@@ -18,8 +18,17 @@ export class PlannerService {
     try {
       const serverPlan = await apiClient.getWeeklyPlan();
       if (serverPlan && typeof serverPlan === 'object') {
-        this.currentPlan = serverPlan;
-        this.persistPlan();
+        const hasServerMeals = Object.values(serverPlan).some(
+          d => d && (d.lunch !== null || d.dinner !== null)
+        );
+        const hasLocalMeals = Object.values(this.currentPlan).some(
+          d => d && (d.lunch !== null || d.dinner !== null)
+        );
+
+        if (hasServerMeals || !hasLocalMeals) {
+          this.currentPlan = serverPlan;
+          this.persistPlan();
+        }
       }
     } catch {
       // Offline fallback

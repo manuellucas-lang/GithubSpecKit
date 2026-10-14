@@ -57,4 +57,49 @@ describe('Planner & Shopping List API Contract Tests', () => {
     expect(shoppingList.items.length).toBeGreaterThan(0);
     expect(shoppingList.items.some((i: { name: string }) => i.name.toLowerCase().includes('arroz'))).toBe(true);
   });
+
+  it('DELETE /api/v1/planner clears all planned meals', async () => {
+    await app.inject({
+      method: 'PUT',
+      url: '/api/v1/planner/meal',
+      payload: {
+        day: 'lunes',
+        slot: 'lunch',
+        recipeId: 'rec-01-paella-marisco',
+      },
+    });
+
+    const delRes = await app.inject({
+      method: 'DELETE',
+      url: '/api/v1/planner',
+    });
+
+    expect(delRes.statusCode).toBe(200);
+    const plan = delRes.json();
+    expect(plan.lunes.lunch).toBeNull();
+  });
+
+  it('PUT /api/v1/planner/meal returns 400 on invalid payload and 404 for non-existent recipe', async () => {
+    const invalidSlotRes = await app.inject({
+      method: 'PUT',
+      url: '/api/v1/planner/meal',
+      payload: {
+        day: 'invalid-day',
+        slot: 'snack',
+        recipeId: 'rec-01-paella-marisco',
+      },
+    });
+    expect(invalidSlotRes.statusCode).toBe(400);
+
+    const notFoundRes = await app.inject({
+      method: 'PUT',
+      url: '/api/v1/planner/meal',
+      payload: {
+        day: 'lunes',
+        slot: 'lunch',
+        recipeId: 'rec-non-existent-999',
+      },
+    });
+    expect(notFoundRes.statusCode).toBe(404);
+  });
 });

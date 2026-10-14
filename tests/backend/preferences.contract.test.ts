@@ -76,4 +76,13 @@ describe('Preferences API Contract Tests', () => {
     });
     expect(getRes.statusCode).toBe(404);
   });
+
+  it('PUT /api/v1/preferences/:recipeId returns 404 when recipeId does not exist', async () => {
+    const putRes = await app.inject({
+      method: 'PUT',
+      url: '/api/v1/preferences/non-existent-recipe-xyz',
+      payload: { candidate: validCandidate },
+    });
+    expect(putRes.statusCode).toBe(404);
+  });
 });

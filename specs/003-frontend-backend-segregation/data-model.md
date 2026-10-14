@@ -20,8 +20,9 @@ erDiagram
 
     RECIPES {
         string id PK
-        string name
+        string title
         string description
+        string keyword
         integer prep_time_minutes
         integer cook_time_minutes
         integer servings
@@ -29,6 +30,7 @@ erDiagram
         string cuisine
         string image_url
         string instructions_json
+        string allergens_json
         datetime created_at
     }
 
@@ -36,9 +38,9 @@ erDiagram
         integer id PK
         string recipe_id FK
         string name
-        real amount
+        real quantity
         string unit
-        string category
+        string notes
     }
 
     RECIPE_TAGS {
@@ -80,29 +82,30 @@ erDiagram
 ```sql
 CREATE TABLE IF NOT EXISTS recipes (
     id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
+    title TEXT NOT NULL,
     description TEXT NOT NULL,
+    keyword TEXT NOT NULL,
     prep_time_minutes INTEGER NOT NULL,
     cook_time_minutes INTEGER NOT NULL,
     servings INTEGER NOT NULL,
     difficulty TEXT NOT NULL CHECK(difficulty IN ('Fácil', 'Intermedio', 'Avanzado')),
-    cuisine TEXT NOT NULL,
-    image_url TEXT NOT NULL,
+    cuisine TEXT NOT NULL DEFAULT 'Española',
+    image_url TEXT,
     instructions_json TEXT NOT NULL,
     allergens_json TEXT NOT NULL DEFAULT '[]',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_recipes_name ON recipes(name);
+CREATE INDEX IF NOT EXISTS idx_recipes_title ON recipes(title);
 CREATE INDEX IF NOT EXISTS idx_recipes_cook_time ON recipes(cook_time_minutes);
 
 CREATE TABLE IF NOT EXISTS ingredients (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     recipe_id TEXT NOT NULL REFERENCES recipes(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
-    amount REAL NOT NULL,
+    quantity REAL NOT NULL,
     unit TEXT NOT NULL,
-    category TEXT NOT NULL
+    notes TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_ingredients_recipe_id ON ingredients(recipe_id);

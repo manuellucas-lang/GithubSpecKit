@@ -30,7 +30,7 @@ export function seedRecipes(db: Database.Database): void {
   }
 
   if (!seedPath || !fs.existsSync(seedPath)) {
-    return;
+    throw new Error('Seed file recipes.json not found');
   }
 
   const rawData = fs.readFileSync(seedPath, 'utf-8');

@@ -20,6 +20,8 @@ export const App: React.FC = () => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState<number>(0);
   const [activeTab, setActiveTab] = useState<ActiveTab>('catalog');
 
   // Filters state
@@ -37,6 +39,7 @@ export const App: React.FC = () => {
   useEffect(() => {
     let isMounted = true;
     setIsLoading(true);
+    setLoadError(null);
 
     recipeService
       .getRecipes({
@@ -52,8 +55,9 @@ export const App: React.FC = () => {
           });
         }
       })
-      .catch(() => {
+      .catch((err: unknown) => {
         if (isMounted) {
+          setLoadError(err instanceof Error ? err.message : 'Error al conectar con el servidor');
           setIsLoading(false);
         }
       });
@@ -61,7 +65,7 @@ export const App: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, [searchQuery, excludedAllergens, maxTotalMinutes]);
+  }, [searchQuery, excludedAllergens, maxTotalMinutes, reloadKey]);
 
   // Derived shopping list items
   const shoppingItems = shoppingListService.generateShoppingList(weeklyPlan, checkedItemKeys);
@@ -365,7 +369,35 @@ export const App: React.FC = () => {
             />
 
             {/* Recipes Grid */}
-            {isLoading ? (
+            {loadError ? (
+              <div
+                style={{
+                  padding: '24px',
+                  backgroundColor: 'var(--color-danger-bg)',
+                  color: 'var(--color-danger)',
+                  borderRadius: 'var(--radius-lg)',
+                  textAlign: 'center',
+                  marginBottom: '24px',
+                  border: '1px solid var(--color-danger)',
+                }}
+              >
+                <p style={{ fontWeight: 600, marginBottom: '12px' }}>{loadError}</p>
+                <button
+                  onClick={() => setReloadKey(k => k + 1)}
+                  style={{
+                    backgroundColor: 'var(--color-primary)',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: 'var(--radius-md)',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                  }}
+                >
+                  Reintentar
+                </button>
+              </div>
+            ) : isLoading ? (
               <div
                 style={{
                   display: 'grid',

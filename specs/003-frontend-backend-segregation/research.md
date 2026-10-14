@@ -29,18 +29,16 @@ githubSpecKit/
 │   ├── api/                      # ApiClient tipado que realiza fetch('/api/v1/...')
 │   ├── App.tsx                   # Componente raíz
 │   └── main.tsx                  # Punto de entrada de Vite
-├── backend/                      # Servidor API Node.js + TypeScript + Fastify
+├── backend/                      # Servidor API Node.js + TypeScript + Express
 │   ├── controllers/              # Controladores REST: recipes, images, preferences, planner
-│   ├── services/                 # Lógica de dominio, pasarela de imágenes Unsplash, caché
+│   ├── services/                 # Lógica de dominio, pasarela de imágenes Unsplash, caché LRU
 │   ├── repositories/             # Persistencia SQLite (better-sqlite3 en modo WAL)
 │   ├── database/                 # Conexión, esquema DDL, migraciones y seeders
-│   ├── middleware/               # Helmet, CORS, RateLimit, Pino logging, error handling
-│   ├── app.ts                    # Configuración de Fastify, plugins y rutas
+│   ├── app.ts                    # Configuración Express, middlewares (Helmet, CORS) y rutas
 │   └── server.ts                 # Bootstrap y arranque del servidor en puerto 4000
 ├── shared/                       # Modelos, DTOs y validaciones compartidas
 │   ├── models/                   # Recipe, Allergen, CookingTime, Ingredient, Preference, Plan, ShoppingList
-│   ├── dto/                      # RecipeDto, ImageDto, PlannerDto, ErrorDto
-│   └── schemas/                  # Validación Zod compartida
+│   └── dto/                      # RecipeDto, ImageDto, PlannerDto, ErrorDto (con esquemas Zod)
 ├── tests/                        # Suites de pruebas estructuradas
 │   ├── frontend/                 # Pruebas de componentes y hooks (RTL, Vitest)
 │   ├── backend/                  # Pruebas de contrato y endpoints (Supertest, Vitest)
@@ -59,11 +57,11 @@ githubSpecKit/
 ### Context
 El servidor backend debe proporcionar endpoints RESTful, validación de esquemas, middleware de seguridad, proxy de imágenes y logging estructurado en JSON.
 
-### Decision: Fastify 5.x
-- **Rendimiento**: Serialización de alto rendimiento (>70.000 req/s), significativamente superior a Express.
-- **Type-Safety**: Excelente integración nativa con TypeScript y esquemas Zod.
-- **Observabilidad**: Logger Pino integrado por defecto, satisfaciendo el Principio IV (Continuous Integration & Observability).
-- **Plugins**: Sistema modular de plugins limpios para encapsular controladores y middleware (`@fastify/cors`, `@fastify/helmet`, `@fastify/rate-limit`).
+### Decision: Node.js + Express con TypeScript y Zod
+- **Madurez y Estabilidad**: Ecosistema robusto y probado, con compatibilidad directa con middlewares estándar (`helmet`, `cors`).
+- **Type-Safety & Validación**: Validación declarativa de peticiones con esquemas Zod en `shared/dto/` compartidos con el cliente React.
+- **Manejo Centralizado de Errores**: Middleware de error conforme al estándar RFC 7807 (Problem Details).
+- **Simplicidad Arquitectural**: Enrutamiento modular limpio (`recipeRouter`, `imageRouter`, `preferenceRouter`, `plannerRouter`) sin overhead de plugins complejos.
 
 ---
 

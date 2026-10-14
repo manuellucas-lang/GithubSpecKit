@@ -3,11 +3,23 @@ import { SQLiteRecipeRepository } from '../repositories/sqlite_recipe_repository
 import { RecipeFilterQuerySchema } from '@shared/dto/recipe.dto';
 
 export function registerRecipeRoutes(app: FastifyInstance, repository: SQLiteRecipeRepository): void {
-  app.get('/api/v1/recipes', async (request: FastifyRequest) => {
+  app.get('/api/v1/recipes', async (request: FastifyRequest, reply: FastifyReply) => {
     const queryResult = RecipeFilterQuerySchema.safeParse(request.query);
-    const filters = queryResult.success ? queryResult.data : {};
+    if (!queryResult.success) {
+      return reply.status(400).send({
+        type: 'https://tools.ietf.org/html/rfc7807',
+        title: 'Invalid Filter Parameters',
+        status: 400,
+        detail: 'One or more filter parameters are invalid',
+        instance: request.url,
+        invalidParams: queryResult.error.issues.map((e) => ({
+          name: e.path.join('.'),
+          reason: e.message,
+        })),
+      });
+    }
 
-    const recipes = repository.findAll(filters);
+    const recipes = repository.findAll(queryResult.data);
     return {
       data: recipes,
       total: recipes.length,

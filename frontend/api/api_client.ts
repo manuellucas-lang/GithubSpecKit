@@ -51,9 +51,12 @@ export class ApiClient {
       headers.set('Content-Type', 'application/json');
     }
 
+    const signal = options.signal ?? AbortSignal.timeout(8000);
+
     const response = await fetch(url, {
       ...options,
       headers,
+      signal,
     });
 
     if (!response.ok) {

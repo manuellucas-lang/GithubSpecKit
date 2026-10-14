@@ -43,6 +43,16 @@ export function registerPreferenceRoutes(app: FastifyInstance, repository: SQLit
       });
     }
 
+    if (!repository.hasRecipe(recipeId)) {
+      return reply.status(404).send({
+        type: 'https://tools.ietf.org/html/rfc7807',
+        title: 'Recipe Not Found',
+        status: 404,
+        detail: `No recipe found with identifier "${recipeId}"`,
+        instance: request.url,
+      });
+    }
+
     const { candidate } = parseResult.data;
     const saved = repository.set(recipeId, candidate);
     return saved;

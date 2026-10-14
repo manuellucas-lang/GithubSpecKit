@@ -19,8 +19,10 @@
 | `PUT` | `/preferences/:recipeId` | Guardar preferencia de imagen personalizada | `SavePreferenceRequestDto` | `200 OK`: `RecipeImagePreferenceDto` |
 | `DELETE`| `/preferences/:recipeId` | Restablecer a imagen por defecto | Ninguno | `200 OK`: `{ success: true }` |
 | `GET` | `/planner` | Obtener asignaciones del planificador semanal | Ninguno | `200 OK`: `WeeklyPlanDto` |
-| `PUT` | `/planner` | Actualizar plan semanal completo | `WeeklyPlanDto` | `200 OK`: `WeeklyPlanDto` |
+| `PUT` | `/planner/meal` | Asignar o vaciar una comida del plan semanal | `SaveDayMealRequestDto` | `200 OK`: `WeeklyPlanDto` |
+| `DELETE`| `/planner` | Limpiar todas las asignaciones del planificador | Ninguno | `200 OK`: `WeeklyPlanDto` |
 | `GET` | `/shopping-list` | Obtener lista de compras agregada del plan | Ninguno | `200 OK`: `ShoppingListDto` |
+| `GET` | `/planner/shopping-list` | Alias para lista de compras del plan | Ninguno | `200 OK`: `ShoppingListDto` |
 
 ---
 
@@ -29,27 +31,42 @@
 ```typescript
 // shared/dto/recipe.dto.ts
 
-export interface RecipeDto {
-  id: string;
-  name: string;
-  description: string;
-  prepTimeMinutes: number;
-  cookTimeMinutes: number;
-  servings: number;
-  difficulty: 'Fácil' | 'Intermedio' | 'Avanzado';
-  cuisine: string;
-  tags: string[];
-  allergens: string[];
-  imageUrl: string;
-  ingredients: RecipeIngredientDto[];
-  instructions: string[];
+export type RecipeDifficulty = 'Fácil' | 'Intermedio' | 'Avanzado';
+
+export interface RecipeStepDto {
+  stepNumber: number;
+  title: string;
+  instruction: string;
+  estimatedMinutes?: number;
 }
 
 export interface RecipeIngredientDto {
+  id: string;
   name: string;
-  amount: number;
+  quantity: number;
   unit: string;
-  category: string;
+  notes?: string;
+}
+
+export interface CookingTimeDto {
+  prepMinutes: number;
+  cookMinutes: number;
+  totalMinutes: number;
+  displayLabel: string;
+}
+
+export interface RecipeDto {
+  id: string;
+  title: string;
+  description: string;
+  keyword: string;
+  servings: number;
+  difficulty: RecipeDifficulty;
+  cookingTime: CookingTimeDto;
+  ingredients: RecipeIngredientDto[];
+  steps: RecipeStepDto[];
+  allergens: string[];
+  imageUrl?: string;
 }
 
 export interface RecipeFilterQueryDto {
@@ -105,21 +122,20 @@ export interface SavePreferenceRequestDto {
 ```typescript
 // shared/dto/planner.dto.ts
 
-export type MealType = 'lunch' | 'dinner';
 export type DayOfWeek = 'lunes' | 'martes' | 'miercoles' | 'jueves' | 'viernes' | 'sabado' | 'domingo';
+export type MealSlot = 'lunch' | 'dinner';
 
-export interface PlannedMealDto {
-  recipeId: string;
-  servings: number;
+export interface DayPlanDto {
+  lunch: RecipeDto | null;
+  dinner: RecipeDto | null;
 }
 
-export interface WeeklyPlanDto {
-  weekId: string;
-  days: Record<DayOfWeek, {
-    lunch: PlannedMealDto | null;
-    dinner: PlannedMealDto | null;
-  }>;
-  updatedAt: string;
+export type WeeklyPlanDto = Record<DayOfWeek, DayPlanDto>;
+
+export interface SaveDayMealRequestDto {
+  day: DayOfWeek;
+  slot: MealSlot;
+  recipeId: string | null;
 }
 
 export interface ShoppingListItemDto {
@@ -156,5 +172,12 @@ export interface ApiErrorResponseDto {
     name: string;
     reason: string;
   }>;
+}
+
+export interface HealthStatusDto {
+  status: 'ok' | 'degraded' | 'error';
+  service: string;
+  uptimeSeconds: number;
+  timestamp: string;
 }
 ```

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { buildApp } from '@backend/app';
 import { initDatabase } from '@backend/database/sqlite';
@@ -9,11 +9,13 @@ describe('Images Proxy API Contract Tests', () => {
   let db: Database.Database;
 
   beforeEach(async () => {
+    vi.stubEnv('UNSPLASH_ACCESS_KEY', '');
     db = initDatabase({ inMemory: true });
     app = await buildApp({ db, logger: false });
   });
 
   afterEach(async () => {
+    vi.unstubAllEnvs();
     await app.close();
     db.close();
   });

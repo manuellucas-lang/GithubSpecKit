@@ -65,7 +65,16 @@ export class SQLitePreferenceRepository {
     };
   }
 
+  hasRecipe(recipeId: string): boolean {
+    const row = this.db.prepare('SELECT 1 FROM recipes WHERE id = ?').get(recipeId);
+    return !!row;
+  }
+
   set(recipeId: string, candidate: RecipeImageCandidate): RecipeImagePreference {
+    if (!this.hasRecipe(recipeId)) {
+      throw new Error(`Recipe with id "${recipeId}" not found`);
+    }
+
     const preference: RecipeImagePreference = {
       recipeId,
       imageId: candidate.id,

@@ -2,8 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { SQLitePlannerRepository } from '../repositories/sqlite_planner_repository';
 import { SaveDayMealRequestSchema } from '@shared/dto/planner.dto';
-import { ShoppingListItem, buildIngredientKey } from '@shared/models/shopping_list';
-import { DAYS_OF_WEEK } from '@shared/models/weekly_plan';
+import { generateShoppingListFromPlan } from '@shared/models/shopping_list';
 
 export function registerPlannerRoutes(app: FastifyInstance, repository: SQLitePlannerRepository): void {
   app.get('/api/v1/planner', async () => {
@@ -28,6 +27,17 @@ export function registerPlannerRoutes(app: FastifyInstance, repository: SQLitePl
     }
 
     const { day, slot, recipeId } = parseResult.data;
+
+    if (recipeId && !repository.hasRecipe(recipeId)) {
+      return reply.status(404).send({
+        type: 'https://tools.ietf.org/html/rfc7807',
+        title: 'Recipe Not Found',
+        status: 404,
+        detail: `No recipe found with identifier "${recipeId}"`,
+        instance: request.url,
+      });
+    }
+
     const updated = repository.setMeal(day, slot, recipeId);
     return updated;
   });
@@ -38,41 +48,10 @@ export function registerPlannerRoutes(app: FastifyInstance, repository: SQLitePl
 
   app.get('/api/v1/shopping-list', async () => {
     const plan = repository.getPlan();
-    const map = new Map<string, ShoppingListItem>();
-
-    for (const { key: dayKey } of DAYS_OF_WEEK) {
-      const dayPlan = plan[dayKey];
-      if (!dayPlan) continue;
-
-      const meals = [dayPlan.lunch, dayPlan.dinner];
-      for (const recipe of meals) {
-        if (!recipe || !Array.isArray(recipe.ingredients)) continue;
-
-        for (const ing of recipe.ingredients) {
-          const key = buildIngredientKey(ing.name, ing.unit);
-          const existing = map.get(key);
-
-          if (existing) {
-            existing.totalQuantity += ing.quantity;
-            if (!existing.sourceRecipes.includes(recipe.title)) {
-              existing.sourceRecipes.push(recipe.title);
-            }
-          } else {
-            map.set(key, {
-              key,
-              name: ing.name,
-              totalQuantity: ing.quantity,
-              unit: ing.unit,
-              sourceRecipes: [recipe.title],
-              checked: false,
-            });
-          }
-        }
-      }
-    }
+    const items = generateShoppingListFromPlan(plan);
 
     return {
-      items: Array.from(map.values()),
+      items,
       generatedAt: new Date().toISOString(),
     };
   });

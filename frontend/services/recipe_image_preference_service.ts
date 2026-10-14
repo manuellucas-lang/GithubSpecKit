@@ -45,10 +45,17 @@ export class RecipeImagePreferenceService {
       const serverPrefs = await apiClient.getPreferences();
       if (serverPrefs && typeof serverPrefs === 'object') {
         const local = this.readStorage() || {};
-        const merged: Record<string, RecipeImagePreference> = {
-          ...serverPrefs,
-          ...local,
-        };
+        const merged: Record<string, RecipeImagePreference> = { ...serverPrefs };
+        for (const [key, localPref] of Object.entries(local)) {
+          const serverPref = serverPrefs[key];
+          if (!serverPref) {
+            merged[key] = localPref;
+          } else {
+            const localTime = new Date(localPref.updatedAt).getTime();
+            const serverTime = new Date(serverPref.updatedAt).getTime();
+            merged[key] = localTime > serverTime ? localPref : serverPref;
+          }
+        }
         this.writeStorage(merged);
         this.notifyAll();
       }

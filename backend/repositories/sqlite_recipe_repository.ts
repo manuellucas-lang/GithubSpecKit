@@ -8,11 +8,18 @@ export interface RecipeFilterOptions {
   search?: string;
   maxCookingMinutes?: number;
   difficulty?: string;
+  cuisine?: string;
   tag?: string;
 }
 
 export class SQLiteRecipeRepository {
-  constructor(private db: Database.Database) {}
+  private ingredientsStmt: Database.Statement;
+  private findByIdStmt: Database.Statement;
+
+  constructor(private db: Database.Database) {
+    this.ingredientsStmt = this.db.prepare('SELECT * FROM ingredients WHERE recipe_id = ? ORDER BY id ASC');
+    this.findByIdStmt = this.db.prepare('SELECT * FROM recipes WHERE id = ?');
+  }
 
   findAll(filters: RecipeFilterOptions = {}): Recipe[] {
     let sql = 'SELECT * FROM recipes WHERE 1=1';
@@ -33,6 +40,16 @@ export class SQLiteRecipeRepository {
       params.difficulty = filters.difficulty;
     }
 
+    if (filters.cuisine && filters.cuisine.trim() !== '') {
+      sql += ' AND LOWER(cuisine) = @cuisine';
+      params.cuisine = filters.cuisine.toLowerCase().trim();
+    }
+
+    if (filters.tag && filters.tag.trim() !== '') {
+      sql += ' AND EXISTS (SELECT 1 FROM recipe_tags rt WHERE rt.recipe_id = recipes.id AND LOWER(rt.tag) = @tag)';
+      params.tag = filters.tag.toLowerCase().trim();
+    }
+
     sql += ' ORDER BY title ASC';
 
     const rows = this.db.prepare(sql).all(params) as Array<Record<string, unknown>>;
@@ -40,14 +57,14 @@ export class SQLiteRecipeRepository {
   }
 
   findById(id: string): Recipe | null {
-    const row = this.db.prepare('SELECT * FROM recipes WHERE id = ?').get(id) as Record<string, unknown> | undefined;
+    const row = this.findByIdStmt.get(id) as Record<string, unknown> | undefined;
     if (!row) return null;
     return this.hydrateRecipe(row);
   }
 
   private hydrateRecipe(row: Record<string, unknown>): Recipe {
     const id = row.id as string;
-    const ingredientsRows = this.db.prepare('SELECT * FROM ingredients WHERE recipe_id = ? ORDER BY id ASC').all(id) as Array<{
+    const ingredientsRows = this.ingredientsStmt.all(id) as Array<{
       id: number;
       name: string;
       quantity: number;

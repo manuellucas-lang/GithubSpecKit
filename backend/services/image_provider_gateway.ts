@@ -131,7 +131,18 @@ function createFallbackSvg(index: number, keyword: string): string {
 
 export class ImageProviderGateway {
   private cache: Map<string, { candidates: RecipeImageCandidate[]; timestamp: number }> = new Map();
+  private readonly maxCacheEntries = 100;
   private readonly ttlMs = 24 * 60 * 60 * 1000; // 24 hours
+
+  private setCache(key: string, candidates: RecipeImageCandidate[]): void {
+    if (this.cache.size >= this.maxCacheEntries) {
+      const oldestKey = this.cache.keys().next().value;
+      if (oldestKey) {
+        this.cache.delete(oldestKey);
+      }
+    }
+    this.cache.set(key, { candidates, timestamp: Date.now() });
+  }
 
   async fetchCandidates(keywordParam: string, countParam: number = 6): Promise<RecipeImageCandidate[]> {
     const keyword = keywordParam.toLowerCase().trim();
@@ -152,7 +163,7 @@ export class ImageProviderGateway {
     const curated = CURATED_CANDIDATES[keyword];
     if (curated && curated.length > 0) {
       const candidates = curated.slice(0, count);
-      this.cache.set(cacheKey, { candidates, timestamp: Date.now() });
+      this.setCache(cacheKey, candidates);
       return candidates;
     }
 
@@ -165,6 +176,7 @@ export class ImageProviderGateway {
             Authorization: `Client-ID ${accessKey}`,
             Accept: 'application/json',
           },
+          signal: AbortSignal.timeout(5000),
         });
 
         if (res.ok) {
@@ -189,13 +201,10 @@ export class ImageProviderGateway {
             });
 
             if (candidates.length >= 3) {
-              this.cache.set(cacheKey, { candidates, timestamp: Date.now() });
+              this.setCache(cacheKey, candidates);
               return candidates;
             }
-            if (candidates.length === 1) {
-              return [];
-            }
-            // If candidates.length === 2, fall through to fallback collection
+            // If candidates.length < 3, fall through to fallback collection
           }
         }
       } catch {

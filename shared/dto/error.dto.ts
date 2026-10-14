@@ -23,9 +23,9 @@ export type ApiErrorResponseDto = z.infer<typeof ApiErrorResponseSchema>;
 
 export const HealthStatusSchema = z.object({
   status: z.enum(['ok', 'degraded', 'error']),
-  uptime: z.number(),
+  service: z.string(),
+  uptimeSeconds: z.number().int().nonnegative(),
   timestamp: z.string(),
-  version: z.string(),
 });
 
 export type HealthStatusDto = z.infer<typeof HealthStatusSchema>;

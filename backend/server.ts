@@ -21,5 +21,8 @@ async function startServer(): Promise<void> {
 }
 
 if (process.env.NODE_ENV !== 'test') {
-  startServer();
+  startServer().catch((err) => {
+    console.error('Fatal initialization error:', err);
+    process.exit(1);
+  });
 }

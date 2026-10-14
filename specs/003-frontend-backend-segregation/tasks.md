@@ -22,16 +22,16 @@ Las tareas se ordenan cronológicamente por fases y dependencias. Las tareas mar
 
 ## Phase 2: Backend Architecture & Persistence (TDD)
 
-- [X] T005 Instalar dependencias del backend (`fastify`, `@fastify/cors`, `@fastify/helmet`, `@fastify/rate-limit`, `better-sqlite3`, `@types/better-sqlite3`).
+- [X] T005 Instalar dependencias del backend (`express`, `@types/express`, `cors`, `@types/cors`, `helmet`, `better-sqlite3`, `@types/better-sqlite3`).
 - [X] T006 Implementar conexión SQLite, pragmas WAL y migraciones DDL automáticas en `backend/database/sqlite.ts`.
 - [X] T007 Implementar seeder del catálogo inicial de recetas en `backend/database/seeds/recipes.seed.ts`.
-- [X] T008 [P] Crear pruebas de contrato con Supertest/Fastify inject para `GET /api/v1/health` y `GET /api/v1/recipes` en `tests/backend/recipes.contract.test.ts`.
+- [X] T008 [P] Crear pruebas de contrato con Supertest para `GET /api/v1/health` y `GET /api/v1/recipes` en `tests/backend/recipes.contract.test.ts`.
 - [X] T009 [P] Crear pruebas de contrato para `GET /api/v1/images/candidates` en `tests/backend/images.contract.test.ts`.
 - [X] T010 [P] Crear pruebas de contrato para `GET/PUT/DELETE /api/v1/preferences` en `tests/backend/preferences.contract.test.ts`.
-- [X] T011 [P] Crear pruebas de contrato para `GET/PUT /api/v1/planner` y `GET /api/v1/shopping-list` en `tests/backend/planner.contract.test.ts`.
+- [X] T011 [P] Crear pruebas de contrato para `GET/PUT/DELETE /api/v1/planner` y `GET /api/v1/shopping-list` con validación y manejo de errores (400, 404) en `tests/backend/planner.contract.test.ts`.
 - [X] T012 Implementar repositorios SQLite (`SQLiteRecipeRepository`, `SQLitePreferenceRepository`, `SQLitePlannerRepository`) en `backend/repositories/`.
 - [X] T013 Implementar pasarela segura de imágenes Unsplash con caché en memoria y fallback SVG en `backend/services/image_provider_gateway.ts`.
-- [X] T014 Configurar servidor Fastify con plugins de seguridad (Helmet, CORS, Rate Limit) y logging Pino en `backend/app.ts` y `backend/server.ts`.
+- [X] T014 Configurar servidor Express con middlewares de seguridad (Helmet, CORS) y manejo de errores RFC 7807 en `backend/app.ts` y `backend/server.ts`.
 - [X] T015 Implementar y registrar controladores REST en `backend/controllers/` (`recipe_controller.ts`, `image_controller.ts`, `preference_controller.ts`, `planner_controller.ts`, `health_controller.ts`).
 
 ---

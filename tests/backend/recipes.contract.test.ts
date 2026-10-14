@@ -91,4 +91,31 @@ describe('Recipes & Health API Contract Tests', () => {
     });
     expect(resNotFound.statusCode).toBe(404);
   });
+
+  it('GET /api/v1/recipes?maxCookingMinutes=abc returns 400 with RFC 7807 error', async () => {
+    const res = await app.inject({
+      method: 'GET',
+      url: '/api/v1/recipes?maxCookingMinutes=not-a-number',
+    });
+    expect(res.statusCode).toBe(400);
+    const body = res.json();
+    expect(body.type).toBe('https://tools.ietf.org/html/rfc7807');
+    expect(body.status).toBe(400);
+  });
+
+  it('GET /api/v1/recipes filters by cuisine and tag', async () => {
+    const resCuisine = await app.inject({
+      method: 'GET',
+      url: '/api/v1/recipes?cuisine=Española',
+    });
+    expect(resCuisine.statusCode).toBe(200);
+    expect(resCuisine.json().data.length).toBeGreaterThan(0);
+
+    const resTag = await app.inject({
+      method: 'GET',
+      url: '/api/v1/recipes?tag=fácil',
+    });
+    expect(resTag.statusCode).toBe(200);
+    expect(resTag.json().data.length).toBeGreaterThan(0);
+  });
 });

@@ -42,7 +42,7 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
   });
 
   await app.register(cors, {
-    origin: true, // Allow frontend dev server origin
+    origin: (process.env.CORS_ORIGINS ?? 'http://localhost:5173').split(','),
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   });
 
@@ -73,7 +73,9 @@ export async function buildApp(options: AppOptions = {}): Promise<FastifyInstanc
       type: 'https://tools.ietf.org/html/rfc7807',
       title: error.name || 'Internal Server Error',
       status: statusCode,
-      detail: error.message || 'An unexpected error occurred processing your request',
+      detail: statusCode >= 500
+        ? 'An unexpected error occurred processing your request'
+        : error.message,
       instance: request.url,
     });
   });

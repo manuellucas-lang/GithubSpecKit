@@ -1,13 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { RecipeDetail } from '../../presentation/components/RecipeDetail';
 import { Recipe } from '../../domain/models/recipe';
+import { recipeImagePreferenceService } from '../../domain/services/recipe_image_preference_service';
 
 const mockRecipe: Recipe = {
   id: 'test-paella',
   title: 'Paella Especial',
   description: 'Arroz con mariscos frescos',
-  keyword: 'paella',
+  keyword: 'seafood paella',
   servings: 4,
   difficulty: 'Intermedio',
   cookingTime: {
@@ -50,5 +51,45 @@ describe('RecipeDetail Component Tests', () => {
     const backButton = screen.getByRole('button', { name: /volver al catálogo/i });
     fireEvent.click(backButton);
     expect(handleBack).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens carousel modal on image interaction and closes it only when image selection succeeds', async () => {
+    render(<RecipeDetail recipe={mockRecipe} onBack={vi.fn()} />);
+
+    // Wait for initial image to finish loading so currentImageUrl is stable
+    await waitFor(() => {
+      expect(screen.getByRole('img')).toBeInTheDocument();
+    });
+
+    const imageContainer = screen.getByLabelText(/abrir la galería y cambiar la imagen de la receta/i);
+    fireEvent.click(imageContainer);
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    const spy = vi.spyOn(recipeImagePreferenceService, 'setPreference').mockReturnValue(false);
+    await waitFor(() => {
+      expect(screen.getAllByRole('button', { name: /Seleccionar esta opción/i }).length).toBeGreaterThan(0);
+    });
+
+    const initialButtons = screen.getAllByRole('button', { name: /Seleccionar esta opción/i });
+    fireEvent.click(initialButtons[0]);
+
+    // Modal stays open and displays error
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByText(/No se pudo guardar la imagen seleccionada. Inténtalo de nuevo./i)
+      ).toBeInTheDocument();
+    });
+
+    // Now let persistence succeed
+    spy.mockReturnValueOnce(true);
+    const activeButtons = screen.getAllByRole('button', { name: /Seleccionar esta opción/i });
+    fireEvent.click(activeButtons[0]);
+
+    // Modal closes
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
   });
 });

@@ -2,16 +2,27 @@ import React from 'react';
 import { Recipe } from '../../domain/models/recipe';
 import { AllergenBadge } from './AllergenBadge';
 import { CookingTimeBadge } from './CookingTimeBadge';
-import { useRecipeImage } from '../hooks/useRecipeImage';
+import { useRecipeImagePreference } from '../hooks/useRecipeImagePreference';
 import { Users, ChefHat } from 'lucide-react';
 
+/**
+ * Props for the RecipeCard component.
+ */
 interface RecipeCardProps {
   recipe: Recipe;
   onSelect: (recipe: Recipe) => void;
 }
 
+/**
+ * Visual card summarizing a recipe with reactive image rendering,
+ * dietary badges, preparation time, and selection navigation.
+ *
+ * @param props - Component properties containing the recipe and selection handler.
+ * @returns The rendered recipe card element.
+ */
 export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onSelect }) => {
-  const { image, isLoading } = useRecipeImage(recipe.keyword);
+
+  const { imageUrl, altDescription, isLoading } = useRecipeImagePreference(recipe.id, recipe.keyword);
 
   return (
     <article
@@ -56,8 +67,8 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onSelect }) => {
           />
         ) : (
           <img
-            src={image?.url}
-            alt={image?.altDescription || recipe.title}
+            src={imageUrl}
+            alt={altDescription || recipe.title}
             style={{
               width: '100%',
               height: '100%',
@@ -67,6 +78,7 @@ export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onSelect }) => {
             loading="lazy"
           />
         )}
+
 
         {/* Floating Time Badge */}
         <div style={{ position: 'absolute', top: '12px', right: '12px' }}>

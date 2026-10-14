@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { Recipe } from '../../domain/models/recipe';
+import { useRecipeImagePreference } from '../hooks/useRecipeImagePreference';
 import { X, Search, Clock, Plus } from 'lucide-react';
 
+/**
+ * Props for the RecipeSelectModal component.
+ */
 interface RecipeSelectModalProps {
   recipes: Recipe[];
   dayLabel: string;
@@ -10,6 +14,84 @@ interface RecipeSelectModalProps {
   onClose: () => void;
 }
 
+/**
+ * Item row inside the recipe selection modal, showing title, cooking time, and image preference.
+ *
+ * @param props - Item properties containing the recipe and select handler.
+ * @returns The rendered selection row.
+ */
+const RecipeSelectItem = ({ recipe, onSelect }: { recipe: Recipe; onSelect: (r: Recipe) => void }) => {
+
+  const { imageUrl, altDescription } = useRecipeImagePreference(recipe.id, recipe.keyword);
+  return (
+    <div
+      onClick={() => onSelect(recipe)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '12px 14px',
+        backgroundColor: 'var(--bg-surface-elevated)',
+        borderRadius: 'var(--radius-md)',
+        border: '1px solid var(--border-color)',
+        cursor: 'pointer',
+        transition: 'border-color var(--transition-fast)',
+        gap: '12px',
+      }}
+      onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
+      onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-color)')}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
+        {imageUrl && (
+          <img
+            src={imageUrl}
+            alt={altDescription || recipe.title}
+            style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-sm)', objectFit: 'cover', flexShrink: 0 }}
+          />
+        )}
+        <div>
+          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
+            {recipe.title}
+          </h4>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.78rem', color: 'var(--text-dim)' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <Clock size={12} />
+              {recipe.cookingTime.displayLabel}
+            </span>
+            <span>{recipe.difficulty}</span>
+            <span>{recipe.ingredients.length} ingredientes</span>
+          </div>
+        </div>
+      </div>
+
+      <button
+        style={{
+          backgroundColor: 'rgba(234, 88, 12, 0.15)',
+          color: 'var(--color-primary)',
+          padding: '8px 12px',
+          borderRadius: 'var(--radius-sm)',
+          fontSize: '0.8rem',
+          fontWeight: 700,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
+          flexShrink: 0,
+        }}
+      >
+        <Plus size={14} strokeWidth={2.5} />
+        Elegir
+      </button>
+    </div>
+  );
+};
+
+
+/**
+ * Modal dialog enabling users to select a recipe from the catalog to assign to a meal plan slot.
+ *
+ * @param props - Component properties with catalog recipes, day/slot labels, and selection callbacks.
+ * @returns The rendered selection modal element.
+ */
 export const RecipeSelectModal = ({
   recipes,
   dayLabel,
@@ -124,56 +206,14 @@ export const RecipeSelectModal = ({
             </p>
           ) : (
             filtered.map(recipe => (
-              <div
+              <RecipeSelectItem
                 key={recipe.id}
-                onClick={() => onSelect(recipe)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '12px 14px',
-                  backgroundColor: 'var(--bg-surface-elevated)',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--border-color)',
-                  cursor: 'pointer',
-                  transition: 'border-color var(--transition-fast)',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = 'var(--border-color)')}
-              >
-                <div>
-                  <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '4px' }}>
-                    {recipe.title}
-                  </h4>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '0.78rem', color: 'var(--text-dim)' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      <Clock size={12} />
-                      {recipe.cookingTime.displayLabel}
-                    </span>
-                    <span>{recipe.difficulty}</span>
-                    <span>{recipe.ingredients.length} ingredientes</span>
-                  </div>
-                </div>
-
-                <button
-                  style={{
-                    backgroundColor: 'rgba(234, 88, 12, 0.15)',
-                    color: 'var(--color-primary)',
-                    padding: '8px 12px',
-                    borderRadius: 'var(--radius-sm)',
-                    fontSize: '0.8rem',
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                  }}
-                >
-                  <Plus size={14} strokeWidth={2.5} />
-                  Elegir
-                </button>
-              </div>
+                recipe={recipe}
+                onSelect={onSelect}
+              />
             ))
           )}
+
         </div>
       </div>
     </div>

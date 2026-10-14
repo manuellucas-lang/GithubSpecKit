@@ -2,8 +2,12 @@ import { useState } from 'react';
 import { WeeklyPlan, DayOfWeek, MealSlot, DAYS_OF_WEEK } from '../../domain/models/planner.types';
 import { Recipe } from '../../domain/models/recipe';
 import { RecipeSelectModal } from './RecipeSelectModal';
+import { useRecipeImagePreference } from '../hooks/useRecipeImagePreference';
 import { Calendar, Trash2, Plus, Clock, Utensils, Moon } from 'lucide-react';
 
+/**
+ * Props for the WeeklyPlanner component.
+ */
 interface WeeklyPlannerProps {
   plan: WeeklyPlan;
   recipes: Recipe[];
@@ -13,6 +17,77 @@ interface WeeklyPlannerProps {
   onOpenRecipeDetail: (recipe: Recipe) => void;
 }
 
+/**
+ * Individual assigned meal item within a weekly planner day slot.
+ *
+ * @param props - Item properties containing recipe data, detail callback, and removal callback.
+ * @returns The rendered meal card in the plan grid.
+ */
+const PlannerMealItem = ({
+  recipe,
+  onOpenDetail,
+  onRemove,
+  removeAriaLabel,
+}: {
+  recipe: Recipe;
+  onOpenDetail: () => void;
+  onRemove: () => void;
+  removeAriaLabel: string;
+}) => {
+
+  const { imageUrl, altDescription } = useRecipeImagePreference(recipe.id, recipe.keyword);
+  return (
+    <div
+      style={{
+        padding: '10px 12px',
+        backgroundColor: 'var(--bg-surface-elevated)',
+        borderRadius: 'var(--radius-sm)',
+        border: '1px solid var(--border-color)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '8px',
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        {imageUrl && (
+          <img
+            src={imageUrl}
+            alt={altDescription || recipe.title}
+            style={{ width: '32px', height: '32px', borderRadius: 'var(--radius-sm)', objectFit: 'cover', flexShrink: 0 }}
+          />
+        )}
+        <h4
+          onClick={onOpenDetail}
+          style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)', cursor: 'pointer', flexGrow: 1 }}
+        >
+          {recipe.title}
+        </h4>
+        <button
+          onClick={onRemove}
+          style={{ color: 'var(--text-dim)', padding: '2px', cursor: 'pointer' }}
+          title="Quitar receta"
+          aria-label={removeAriaLabel}
+        >
+          <Trash2 size={13} />
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem', color: 'var(--text-dim)' }}>
+        <Clock size={11} />
+        <span>{recipe.cookingTime.displayLabel}</span>
+      </div>
+    </div>
+  );
+};
+
+
+/**
+ * Weekly meal planning board allowing users to assign, view, and clear meal slots
+ * across the 7 days of the week, reflecting recipe imagery preferences.
+ *
+ * @param props - Component properties containing the plan, available recipes, and meal management callbacks.
+ * @returns The rendered weekly meal planning grid.
+ */
 export const WeeklyPlanner = ({
   plan,
   recipes,
@@ -167,39 +242,12 @@ export const WeeklyPlanner = ({
                 </div>
 
                 {dayPlan.lunch ? (
-                  <div
-                    style={{
-                      padding: '10px 12px',
-                      backgroundColor: 'var(--bg-surface-elevated)',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border-color)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '6px',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <h4
-                        onClick={() => onOpenRecipeDetail(dayPlan.lunch!)}
-                        style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)', cursor: 'pointer', flexGrow: 1 }}
-                      >
-                        {dayPlan.lunch.title}
-                      </h4>
-                      <button
-                        onClick={() => onRemoveMeal(dayKey, 'lunch')}
-                        style={{ color: 'var(--text-dim)', padding: '2px', cursor: 'pointer' }}
-                        title="Quitar receta"
-                        aria-label={`Quitar receta de almuerzo del ${dayLabel}`}
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem', color: 'var(--text-dim)' }}>
-                      <Clock size={11} />
-                      <span>{dayPlan.lunch.cookingTime.displayLabel}</span>
-                    </div>
-                  </div>
+                  <PlannerMealItem
+                    recipe={dayPlan.lunch}
+                    onOpenDetail={() => onOpenRecipeDetail(dayPlan.lunch!)}
+                    onRemove={() => onRemoveMeal(dayKey, 'lunch')}
+                    removeAriaLabel={`Quitar receta de almuerzo del ${dayLabel}`}
+                  />
                 ) : (
                   <button
                     onClick={() => handleOpenAssignModal(dayKey, 'lunch', dayLabel)}
@@ -240,40 +288,14 @@ export const WeeklyPlanner = ({
                 </div>
 
                 {dayPlan.dinner ? (
-                  <div
-                    style={{
-                      padding: '10px 12px',
-                      backgroundColor: 'var(--bg-surface-elevated)',
-                      borderRadius: 'var(--radius-sm)',
-                      border: '1px solid var(--border-color)',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: '6px',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <h4
-                        onClick={() => onOpenRecipeDetail(dayPlan.dinner!)}
-                        style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)', cursor: 'pointer', flexGrow: 1 }}
-                      >
-                        {dayPlan.dinner.title}
-                      </h4>
-                      <button
-                        onClick={() => onRemoveMeal(dayKey, 'dinner')}
-                        style={{ color: 'var(--text-dim)', padding: '2px', cursor: 'pointer' }}
-                        title="Quitar receta"
-                        aria-label={`Quitar receta de cena del ${dayLabel}`}
-                      >
-                        <Trash2 size={13} />
-                      </button>
-                    </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem', color: 'var(--text-dim)' }}>
-                      <Clock size={11} />
-                      <span>{dayPlan.dinner.cookingTime.displayLabel}</span>
-                    </div>
-                  </div>
+                  <PlannerMealItem
+                    recipe={dayPlan.dinner}
+                    onOpenDetail={() => onOpenRecipeDetail(dayPlan.dinner!)}
+                    onRemove={() => onRemoveMeal(dayKey, 'dinner')}
+                    removeAriaLabel={`Quitar receta de cena del ${dayLabel}`}
+                  />
                 ) : (
+
                   <button
                     onClick={() => handleOpenAssignModal(dayKey, 'dinner', dayLabel)}
                     style={{

@@ -215,8 +215,8 @@ export const RecipeImageCarouselModal: React.FC<RecipeImageCarouselModalProps> =
             style={{
               padding: '10px 14px',
               borderRadius: 'var(--radius-md)',
-              backgroundColor: 'rgba(239, 68, 68, 0.15)',
-              color: '#ef4444',
+              backgroundColor: 'var(--color-danger-bg)',
+              color: 'var(--color-danger)',
               fontSize: '0.85rem',
               fontWeight: 600,
               margin: '0 0 14px 0',

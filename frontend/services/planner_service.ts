@@ -110,6 +110,12 @@ export class PlannerService {
       },
     };
     this.persistPlan();
+
+    // Optimistically sync removal with backend
+    apiClient.assignMeal(day, slot, null).catch(() => {
+      // Sync retry or ignore
+    });
+
     return this.getWeeklyPlan();
   }
 

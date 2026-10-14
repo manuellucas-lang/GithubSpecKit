@@ -136,11 +136,19 @@ export class ApiClient {
     return this.request<WeeklyPlan>('/planner');
   }
 
-  async assignMeal(day: DayOfWeek, slot: MealSlot, recipe: Recipe): Promise<WeeklyPlan> {
+  /**
+   * Assigns or clears a meal assignment in the weekly planner.
+   *
+   * @param day - Day of the week.
+   * @param slot - Meal slot (lunch or dinner).
+   * @param recipe - Recipe object or null to clear.
+   * @returns Updated weekly plan from the backend.
+   */
+  async assignMeal(day: DayOfWeek, slot: MealSlot, recipe: Recipe | null): Promise<WeeklyPlan> {
     const payload: SaveDayMealRequestDto = {
       day,
       slot,
-      recipeId: recipe.id,
+      recipeId: recipe ? recipe.id : null,
     };
     return this.request<WeeklyPlan>('/planner/meal', {
       method: 'PUT',

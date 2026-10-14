@@ -38,6 +38,8 @@ export const RecipeImageCarouselModal: React.FC<RecipeImageCarouselModalProps> =
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const previousActiveElementRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -72,15 +74,64 @@ export const RecipeImageCarouselModal: React.FC<RecipeImageCarouselModalProps> =
   useEffect(() => {
     if (!isOpen) return;
 
+    previousActiveElementRef.current = (typeof document !== 'undefined' ? document.activeElement : null) as HTMLElement | null;
+
+    // Focus first interactive control or dialog container
+    const focusTimer = setTimeout(() => {
+      if (dialogRef.current) {
+        const focusables = dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusables.length > 0) {
+          focusables[0].focus();
+        } else {
+          dialogRef.current.focus();
+        }
+      }
+    }, 0);
+
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
+        return;
+      }
+
+      if (e.key === 'Tab' && dialogRef.current) {
+        const focusables = Array.from(
+          dialogRef.current.querySelectorAll<HTMLElement>(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+          )
+        );
+
+        if (focusables.length === 0) {
+          e.preventDefault();
+          return;
+        }
+
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+
+        if (e.shiftKey) {
+          if (document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          }
+        } else {
+          if (document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => {
+      clearTimeout(focusTimer);
       window.removeEventListener('keydown', handleKeyDown);
+      if (previousActiveElementRef.current && typeof previousActiveElementRef.current.focus === 'function') {
+        previousActiveElementRef.current.focus();
+      }
     };
   }, [isOpen, onClose]);
 
@@ -109,7 +160,7 @@ export const RecipeImageCarouselModal: React.FC<RecipeImageCarouselModalProps> =
       aria-modal="true"
       aria-labelledby="carousel-modal-title"
     >
-      <div className="modal-content animate-fade-in" style={{ padding: '24px' }}>
+      <div ref={dialogRef} tabIndex={-1} className="modal-content animate-fade-in" style={{ padding: '24px' }}>
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
           <div>

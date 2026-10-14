@@ -39,4 +39,19 @@ describe('ImageProviderClient Candidates Contract Tests', () => {
     expect(candidates[0].isFallback).toBe(true);
     expect(candidates[0].url).toContain('data:image/svg+xml');
   });
+
+  it('escapes XML special characters in fallback SVG and percent-encodes data URI', async () => {
+    const candidates = await client.fetchImageCandidatesByKeyword({
+      keyword: 'fish & chips <gourmet>',
+      count: 2,
+    });
+    const url = candidates[0].url;
+    expect(url).toContain('data:image/svg+xml;charset=utf-8,');
+    const decoded = decodeURIComponent(url.replace('data:image/svg+xml;charset=utf-8,', ''));
+    expect(decoded).toContain('&amp;');
+    expect(decoded).toContain('&lt;');
+    expect(decoded).toContain('&gt;');
+    expect(decoded).not.toContain('<gourmet>');
+  });
 });
+

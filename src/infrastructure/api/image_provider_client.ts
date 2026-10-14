@@ -42,6 +42,23 @@ interface CuratedPhoto {
   alt: string;
 }
 
+interface UnsplashPhotoItem {
+  id: string;
+  urls?: {
+    regular?: string;
+    small?: string;
+    thumb?: string;
+  };
+  alt_description?: string | null;
+  user?: {
+    name?: string;
+    links?: {
+      html?: string;
+    };
+  };
+}
+
+
 // Curated high-resolution photo galleries for known recipes
 const CURATED_CANDIDATE_GALLERIES: Record<string, CuratedPhoto[]> = {
   'seafood paella': [
@@ -198,20 +215,40 @@ const CURATED_CANDIDATE_GALLERIES: Record<string, CuratedPhoto[]> = {
   ],
 };
 
-const DEFAULT_FALLBACK_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"><rect width="800" height="600" fill="%231e293b"/><path d="M400 230c-55 0-100 45-100 100 0 60 70 120 100 140 30-20 100-80 100-140 0-55-45-100-100-100z" fill="%23ea580c" opacity="0.3"/><text x="400" y="320" font-family="system-ui" font-size="28" font-weight="bold" fill="%23f8fafc" text-anchor="middle">Plato Gourmet</text><text x="400" y="360" font-family="system-ui" font-size="16" fill="%2394a3b8" text-anchor="middle">Imagen gastronómica en preparación</text></svg>';
+/**
+ * Escapes XML special characters to ensure valid SVG rendering.
+ *
+ * @param text - The raw text string to escape.
+ * @returns The XML-escaped string.
+ */
+function escapeXml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+const rawDefaultSvg = '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"><rect width="800" height="600" fill="#1e293b"/><path d="M400 230c-55 0-100 45-100 100 0 60 70 120 100 140 30-20 100-80 100-140 0-55-45-100-100-100z" fill="#ea580c" opacity="0.3"/><text x="400" y="320" font-family="system-ui" font-size="28" font-weight="bold" fill="#f8fafc" text-anchor="middle">Plato Gourmet</text><text x="400" y="360" font-family="system-ui" font-size="16" fill="#94a3b8" text-anchor="middle">Imagen gastronómica en preparación</text></svg>';
+const DEFAULT_FALLBACK_SVG = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(rawDefaultSvg)}`;
 
 /**
  * Generates an inline SVG data URI as fallback visual for an image candidate option.
+ * Escapes XML text content and percent-encodes the SVG payload to prevent malformed URIs.
  *
  * @param index - The positional index of the candidate.
  * @param keyword - The search term or recipe name.
  * @returns An encoded SVG data URI string.
  */
 function createFallbackSvg(index: number, keyword: string): string {
-  const hues = ['%23ea580c', '%233b82f6', '%2310b981', '%238b5cf6'];
+  const hues = ['#ea580c', '#3b82f6', '#10b981', '#8b5cf6'];
   const fill = hues[index % hues.length];
-  return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"><rect width="800" height="600" fill="%231e293b"/><circle cx="400" cy="280" r="90" fill="${fill}" opacity="0.25"/><text x="400" y="300" font-family="system-ui" font-size="24" font-weight="bold" fill="%23f8fafc" text-anchor="middle">Opción Culinaria ${index + 1}</text><text x="400" y="340" font-family="system-ui" font-size="14" fill="%2394a3b8" text-anchor="middle">${keyword}</text></svg>`;
+  const safeKeyword = escapeXml(keyword);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"><rect width="800" height="600" fill="#1e293b"/><circle cx="400" cy="280" r="90" fill="${fill}" opacity="0.25"/><text x="400" y="300" font-family="system-ui" font-size="24" font-weight="bold" fill="#f8fafc" text-anchor="middle">Opción Culinaria ${index + 1}</text><text x="400" y="340" font-family="system-ui" font-size="14" fill="#94a3b8" text-anchor="middle">${safeKeyword}</text></svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
+
 
 /**
  * Service client responsible for fetching primary and alternative recipe imagery
@@ -267,20 +304,26 @@ export class ImageProviderClient {
       });
 
       if (res.ok) {
-        const data = await res.json();
-        if (data.results && data.results.length > 0) {
-          const item = data.results[0];
-          const result: ImageQueryResult = {
-            keyword,
-            url: item.urls.regular || item.urls.small,
-            thumbUrl: item.urls.thumb || item.urls.small,
-            altDescription: item.alt_description || `Receta de ${keyword}`,
-            photographerName: item.user?.name || 'Unsplash Contributor',
-            photographerUrl: item.user?.links?.html,
-            isFallback: false,
-          };
-          imageCache.set(keyword, result);
-          return result;
+        const data = (await res.json()) as { results?: unknown };
+        if (Array.isArray(data.results) && data.results.length > 0) {
+          const rawItem = data.results[0];
+          if (rawItem && typeof rawItem === 'object') {
+            const item = rawItem as UnsplashPhotoItem;
+            const url = item.urls?.regular || item.urls?.small;
+            if (url) {
+              const result: ImageQueryResult = {
+                keyword,
+                url,
+                thumbUrl: item.urls?.thumb || url,
+                altDescription: item.alt_description || `Receta de ${keyword}`,
+                photographerName: item.user?.name || 'Unsplash Contributor',
+                photographerUrl: item.user?.links?.html,
+                isFallback: false,
+              };
+              imageCache.set(keyword, result);
+              return result;
+            }
+          }
         }
       }
     } catch {
@@ -331,18 +374,28 @@ export class ImageProviderClient {
       });
 
       if (res.ok) {
-        const data = await res.json();
-        if (data.results && data.results.length > 0) {
-          return data.results.map((item: any, idx: number) => ({
-            id: item.id || `remote-${idx}`,
-            keyword,
-            url: item.urls.regular || item.urls.small,
-            thumbUrl: item.urls.thumb || item.urls.small,
-            altDescription: item.alt_description || `Alternativa ${idx + 1} para ${keyword}`,
-            photographerName: item.user?.name || 'Unsplash Contributor',
-            photographerUrl: item.user?.links?.html,
-            isFallback: false,
-          }));
+        const data = (await res.json()) as { results?: unknown };
+        if (Array.isArray(data.results) && data.results.length > 0) {
+          const candidates: RecipeImageCandidate[] = [];
+          data.results.forEach((rawItem: unknown, idx: number) => {
+            if (!rawItem || typeof rawItem !== 'object') return;
+            const item = rawItem as UnsplashPhotoItem;
+            const url = item.urls?.regular || item.urls?.small;
+            if (!url) return;
+            candidates.push({
+              id: item.id || `remote-${idx}`,
+              keyword,
+              url,
+              thumbUrl: item.urls?.thumb || url,
+              altDescription: item.alt_description || `Alternativa ${idx + 1} para ${keyword}`,
+              photographerName: item.user?.name || 'Unsplash Contributor',
+              photographerUrl: item.user?.links?.html,
+              isFallback: false,
+            });
+          });
+          if (candidates.length > 0) {
+            return candidates;
+          }
         }
       }
     } catch {

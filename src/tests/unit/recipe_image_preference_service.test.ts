@@ -84,4 +84,30 @@ describe('RecipeImagePreferenceService (Unit Tests)', () => {
     expect(all['recipe-1']?.imageId).toBe('cand-1');
     expect(all['recipe-2']?.imageId).toBe('cand-2');
   });
+
+  it('safely handles corrupted or invalid JSON in storage without throwing', () => {
+    localStorage.setItem('recipe_catalog_image_preferences', 'invalid-json-content{');
+    expect(service.getPreference('recipe-1')).toBeNull();
+    expect(service.getAllPreferences()).toEqual({});
+
+    localStorage.setItem('recipe_catalog_image_preferences', JSON.stringify({ 'recipe-1': 'not-an-object' }));
+    expect(service.getPreference('recipe-1')).toBeNull();
+  });
+
+  it('notifies subscribers with preference: null when an entry is removed in notifyAll', () => {
+    service.setPreference('recipe-1', mockCandidate);
+
+    const listener = vi.fn();
+    service.subscribe(listener);
+
+    // Simulate another tab clearing the preference
+    localStorage.setItem('recipe_catalog_image_preferences', JSON.stringify({}));
+    window.dispatchEvent(new StorageEvent('storage', { key: 'recipe_catalog_image_preferences' }));
+
+    expect(listener).toHaveBeenCalledWith({
+      recipeId: 'recipe-1',
+      preference: null,
+    });
+  });
 });
+

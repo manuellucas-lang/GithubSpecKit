@@ -1,0 +1,307 @@
+import React, { useEffect, useState, useRef } from 'react';
+import { RecipeImageCandidate } from '../../domain/models/recipe_image_candidate';
+import { imageProviderClient } from '../../infrastructure/api/image_provider_client';
+import { X, ChevronLeft, ChevronRight, Check, RotateCcw, Camera, Sparkles } from 'lucide-react';
+
+export interface RecipeImageCarouselModalProps {
+  isOpen: boolean;
+  recipeId: string;
+  recipeTitle: string;
+  keyword: string;
+  currentImageUrl?: string;
+  onSelectImage: (candidate: RecipeImageCandidate) => void;
+  onResetDefault: () => void;
+  onClose: () => void;
+}
+
+export const RecipeImageCarouselModal: React.FC<RecipeImageCarouselModalProps> = ({
+  isOpen,
+  recipeTitle,
+  keyword,
+  currentImageUrl,
+  onSelectImage,
+  onResetDefault,
+  onClose,
+}) => {
+  const [candidates, setCandidates] = useState<RecipeImageCandidate[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    let isMounted = true;
+    setIsLoading(true);
+
+    imageProviderClient
+      .fetchImageCandidatesByKeyword({ keyword, count: 6 })
+      .then(res => {
+        if (isMounted) {
+          setCandidates(res);
+          setIsLoading(false);
+          // Highlight current if matches
+          const match = res.find(c => c.url === currentImageUrl);
+          if (match) {
+            setSelectedCandidateId(match.id);
+          }
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, keyword, currentImageUrl]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  const handleScroll = (direction: 'left' | 'right') => {
+    if (!scrollRef.current) return;
+    const offset = direction === 'left' ? -300 : 300;
+    scrollRef.current.scrollBy({ left: offset, behavior: 'smooth' });
+  };
+
+  const handleChoose = (candidate: RecipeImageCandidate) => {
+    setSelectedCandidateId(candidate.id);
+    onSelectImage(candidate);
+  };
+
+  return (
+    <div
+      className="modal-backdrop"
+      onClick={e => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="carousel-modal-title"
+    >
+      <div className="modal-content animate-fade-in" style={{ padding: '24px' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-primary)', fontSize: '0.85rem', fontWeight: 700, marginBottom: '4px' }}>
+              <Sparkles size={16} />
+              <span>Galería de Imágenes Alternativas</span>
+            </div>
+            <h2 id="carousel-modal-title" style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+              Seleccionar imagen alternativa
+            </h2>
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+              {recipeTitle}
+            </p>
+          </div>
+
+          <button
+            onClick={onClose}
+            aria-label="Cerrar selector de imagen"
+            style={{
+              padding: '8px',
+              borderRadius: 'var(--radius-full)',
+              backgroundColor: 'var(--bg-surface-elevated)',
+              color: 'var(--text-muted)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Carousel Area */}
+        <div style={{ position: 'relative', marginTop: '12px', marginBottom: '20px' }}>
+          {/* Nav buttons */}
+          <button
+            onClick={() => handleScroll('left')}
+            aria-label="Desplazar hacia la izquierda"
+            style={{
+              position: 'absolute',
+              left: '4px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 10,
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(15, 23, 42, 0.85)',
+              border: '1px solid var(--border-color)',
+              color: 'var(--text-main)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: 'var(--shadow-md)',
+            }}
+          >
+            <ChevronLeft size={20} />
+          </button>
+
+          <button
+            onClick={() => handleScroll('right')}
+            aria-label="Desplazar hacia la derecha"
+            style={{
+              position: 'absolute',
+              right: '4px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              zIndex: 10,
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(15, 23, 42, 0.85)',
+              border: '1px solid var(--border-color)',
+              color: 'var(--text-main)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: 'var(--shadow-md)',
+            }}
+          >
+            <ChevronRight size={20} />
+          </button>
+
+          {/* Carousel Track */}
+          <div ref={scrollRef} className="carousel-container">
+            {isLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={`skeleton-${i}`}
+                  className="carousel-card animate-pulse"
+                  style={{ height: '220px', backgroundColor: 'var(--bg-surface-elevated)' }}
+                />
+              ))
+            ) : candidates.length === 0 ? (
+              <div style={{ padding: '40px 20px', textAlign: 'center', width: '100%', color: 'var(--text-muted)' }}>
+                No se encontraron imágenes alternativas para este plato en este momento.
+              </div>
+            ) : (
+              candidates.map(candidate => {
+                const isSelected = selectedCandidateId === candidate.id || candidate.url === currentImageUrl;
+                return (
+                  <div
+                    key={candidate.id}
+                    className={`carousel-card ${isSelected ? 'selected' : ''}`}
+                    onClick={() => handleChoose(candidate)}
+                    style={{ position: 'relative', display: 'flex', flexDirection: 'column' }}
+                  >
+                    <div style={{ height: '170px', width: '100%', overflow: 'hidden', backgroundColor: 'var(--bg-app)' }}>
+                      <img
+                        src={candidate.thumbUrl || candidate.url}
+                        alt={candidate.altDescription}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    </div>
+
+                    <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                        <Camera size={12} />
+                        <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {candidate.photographerName}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={e => {
+                          e.stopPropagation();
+                          handleChoose(candidate);
+                        }}
+                        aria-label={`Seleccionar esta opción: ${candidate.altDescription}`}
+                        style={{
+                          marginTop: '6px',
+                          padding: '6px 10px',
+                          borderRadius: 'var(--radius-sm)',
+                          backgroundColor: isSelected ? 'var(--color-primary)' : 'rgba(234, 88, 12, 0.15)',
+                          color: isSelected ? '#fff' : 'var(--color-primary)',
+                          fontWeight: 700,
+                          fontSize: '0.78rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        {isSelected && <Check size={14} />}
+                        {isSelected ? 'Seleccionada' : 'Seleccionar'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        {/* Footer Actions */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            borderTop: '1px solid var(--border-color)',
+            paddingTop: '16px',
+            flexWrap: 'wrap',
+            gap: '12px',
+          }}
+        >
+          <button
+            onClick={() => {
+              onResetDefault();
+              setSelectedCandidateId(null);
+            }}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '8px 14px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'var(--bg-surface-elevated)',
+              color: 'var(--text-muted)',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+            }}
+          >
+            <RotateCcw size={14} />
+            Restablecer por defecto
+          </button>
+
+          <button
+            onClick={onClose}
+            style={{
+              padding: '8px 18px',
+              borderRadius: 'var(--radius-md)',
+              backgroundColor: 'rgba(148, 163, 184, 0.1)',
+              color: 'var(--text-main)',
+              fontSize: '0.85rem',
+              fontWeight: 600,
+            }}
+          >
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

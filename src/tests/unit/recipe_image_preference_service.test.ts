@@ -1,0 +1,87 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { RecipeImagePreferenceService } from '../../domain/services/recipe_image_preference_service';
+import { RecipeImageCandidate } from '../../domain/models/recipe_image_candidate';
+
+describe('RecipeImagePreferenceService (Unit Tests)', () => {
+  let service: RecipeImagePreferenceService;
+
+  const mockCandidate: RecipeImageCandidate = {
+    id: 'cand-1',
+    keyword: 'paella',
+    url: 'https://example.com/paella-new.jpg',
+    thumbUrl: 'https://example.com/paella-new-thumb.jpg',
+    altDescription: 'Paella con mariscos frescos',
+    photographerName: 'Chef Lucas',
+    photographerUrl: 'https://example.com/chef',
+    isFallback: false,
+  };
+
+  beforeEach(() => {
+    localStorage.clear();
+    service = new RecipeImagePreferenceService();
+  });
+
+  it('returns null when no custom image preference has been set for a recipe', () => {
+    const pref = service.getPreference('recipe-1');
+    expect(pref).toBeNull();
+  });
+
+  it('saves and retrieves a custom image preference for a recipe', () => {
+    service.setPreference('recipe-1', mockCandidate);
+    const pref = service.getPreference('recipe-1');
+
+    expect(pref).not.toBeNull();
+    expect(pref?.recipeId).toBe('recipe-1');
+    expect(pref?.imageId).toBe('cand-1');
+    expect(pref?.url).toBe(mockCandidate.url);
+    expect(pref?.photographerName).toBe('Chef Lucas');
+    expect(pref?.isCustom).toBe(true);
+    expect(pref?.updatedAt).toBeDefined();
+  });
+
+  it('clears a saved custom image preference and restores default', () => {
+    service.setPreference('recipe-1', mockCandidate);
+    expect(service.getPreference('recipe-1')).not.toBeNull();
+
+    service.clearPreference('recipe-1');
+    expect(service.getPreference('recipe-1')).toBeNull();
+  });
+
+  it('dispatches sync change events when setting or clearing preferences', () => {
+    const listener = vi.fn();
+    const unsubscribe = service.subscribe(listener);
+
+    service.setPreference('recipe-1', mockCandidate);
+    expect(listener).toHaveBeenCalledWith({
+      recipeId: 'recipe-1',
+      preference: expect.objectContaining({
+        recipeId: 'recipe-1',
+        imageId: 'cand-1',
+      }),
+    });
+
+    service.clearPreference('recipe-1');
+    expect(listener).toHaveBeenCalledWith({
+      recipeId: 'recipe-1',
+      preference: null,
+    });
+
+    unsubscribe();
+    service.setPreference('recipe-1', mockCandidate);
+    expect(listener).toHaveBeenCalledTimes(2); // No new calls after unsubscribe
+  });
+
+  it('retrieves all stored preferences as a dictionary map', () => {
+    service.setPreference('recipe-1', mockCandidate);
+    service.setPreference('recipe-2', {
+      ...mockCandidate,
+      id: 'cand-2',
+      url: 'https://example.com/soup.jpg',
+    });
+
+    const all = service.getAllPreferences();
+    expect(Object.keys(all)).toHaveLength(2);
+    expect(all['recipe-1']?.imageId).toBe('cand-1');
+    expect(all['recipe-2']?.imageId).toBe('cand-2');
+  });
+});

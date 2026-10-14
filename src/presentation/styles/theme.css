@@ -87,3 +87,96 @@ input {
 .animate-fade-in {
   animation: fadeIn var(--transition-normal) forwards;
 }
+
+/* Modal and Carousel Styles */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.modal-content {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 860px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.carousel-container {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  gap: 16px;
+  padding: 16px 8px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary) var(--bg-surface-elevated);
+}
+
+.carousel-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.carousel-container::-webkit-scrollbar-track {
+  background: var(--bg-surface-elevated);
+  border-radius: var(--radius-full);
+}
+
+.carousel-container::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+
+.carousel-card {
+  flex: 0 0 calc(50% - 12px);
+  min-width: 260px;
+  scroll-snap-align: center;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
+  background-color: var(--bg-surface-elevated);
+  cursor: pointer;
+}
+
+@media (min-width: 768px) {
+  .carousel-card {
+    flex: 0 0 calc(33.333% - 12px);
+  }
+}
+
+@media (max-width: 640px) {
+  .modal-content {
+    max-width: 98vw;
+    padding: 16px;
+    margin: 8px;
+  }
+  .carousel-card {
+    flex: 0 0 calc(85% - 8px);
+    min-width: 210px;
+  }
+}
+
+.carousel-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-color-hover);
+}
+
+
+.carousel-card.selected {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-glow);
+}
+

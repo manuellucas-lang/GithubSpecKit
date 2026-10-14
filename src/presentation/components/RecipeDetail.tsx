@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Recipe } from '../../domain/models/recipe';
 import { AllergenBadge } from './AllergenBadge';
 import { CookingTimeBadge } from './CookingTimeBadge';
-import { useRecipeImage } from '../hooks/useRecipeImage';
-import { ArrowLeft, Users, ChefHat, AlertTriangle, ShieldCheck, Camera } from 'lucide-react';
+import { useRecipeImagePreference } from '../hooks/useRecipeImagePreference';
+import { RecipeImageCarouselModal } from './RecipeImageCarouselModal';
+import { ArrowLeft, Users, ChefHat, AlertTriangle, ShieldCheck, Camera, Sparkles } from 'lucide-react';
 
 interface RecipeDetailProps {
   recipe: Recipe;
@@ -11,7 +12,16 @@ interface RecipeDetailProps {
 }
 
 export const RecipeDetail: React.FC<RecipeDetailProps> = ({ recipe, onBack }) => {
-  const { image, isLoading } = useRecipeImage(recipe.keyword);
+  const {
+    imageUrl,
+    altDescription,
+    photographerName,
+    isLoading,
+    selectCandidate,
+    resetToDefault,
+  } = useRecipeImagePreference(recipe.id, recipe.keyword);
+
+  const [isCarouselOpen, setIsCarouselOpen] = useState<boolean>(false);
 
   return (
     <div style={{ maxWidth: '960px', margin: '0 auto', padding: '24px 16px' }} className="animate-fade-in">
@@ -47,20 +57,62 @@ export const RecipeDetail: React.FC<RecipeDetailProps> = ({ recipe, onBack }) =>
           boxShadow: 'var(--shadow-lg)',
         }}
       >
-        {/* Hero Image */}
-        <div style={{ position: 'relative', height: '380px', width: '100%', backgroundColor: 'var(--bg-surface-elevated)' }}>
+        {/* Hero Image with Interactive Carousel Trigger */}
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => setIsCarouselOpen(true)}
+          onKeyDown={e => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setIsCarouselOpen(true);
+            }
+          }}
+          aria-label="Hacer clic para abrir la galería y cambiar la imagen de la receta"
+          style={{
+            position: 'relative',
+            height: '380px',
+            width: '100%',
+            backgroundColor: 'var(--bg-surface-elevated)',
+            cursor: 'pointer',
+          }}
+        >
           {isLoading ? (
             <div className="animate-pulse" style={{ width: '100%', height: '100%' }} />
           ) : (
             <img
-              src={image?.url}
-              alt={image?.altDescription || recipe.title}
+              src={imageUrl}
+              alt={altDescription || recipe.title}
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />
           )}
 
+          {/* Change Image Visual Badge */}
+          <div
+            style={{
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
+              backgroundColor: 'rgba(15, 23, 42, 0.85)',
+              backdropFilter: 'blur(6px)',
+              border: '1px solid rgba(234, 88, 12, 0.4)',
+              color: 'var(--text-main)',
+              padding: '6px 14px',
+              borderRadius: 'var(--radius-full)',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxShadow: 'var(--shadow-md)',
+            }}
+          >
+            <Sparkles size={14} color="var(--color-primary)" />
+            <span>Cambiar imagen</span>
+          </div>
+
           {/* Photo attribution */}
-          {image && (
+          {photographerName && (
             <div
               style={{
                 position: 'absolute',
@@ -78,10 +130,29 @@ export const RecipeDetail: React.FC<RecipeDetailProps> = ({ recipe, onBack }) =>
               }}
             >
               <Camera size={12} />
-              <span>Foto: {image.photographerName}</span>
+              <span>Foto: {photographerName}</span>
             </div>
           )}
         </div>
+
+        {/* Carousel Modal */}
+        <RecipeImageCarouselModal
+          isOpen={isCarouselOpen}
+          recipeId={recipe.id}
+          recipeTitle={recipe.title}
+          keyword={recipe.keyword}
+          currentImageUrl={imageUrl}
+          onSelectImage={candidate => {
+            selectCandidate(candidate);
+            setIsCarouselOpen(false);
+          }}
+          onResetDefault={() => {
+            resetToDefault();
+            setIsCarouselOpen(false);
+          }}
+          onClose={() => setIsCarouselOpen(false)}
+        />
+
 
         {/* Content Body */}
         <div style={{ padding: '36px 32px', display: 'flex', flexDirection: 'column', gap: '32px' }}>

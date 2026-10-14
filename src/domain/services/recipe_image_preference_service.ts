@@ -44,7 +44,43 @@ export class RecipeImagePreferenceService {
   }
 
   /**
-   * Safely reads stored image preferences from localStorage, validating object structure.
+   * Validates whether an unknown value conforms to the RecipeImagePreference contract.
+   *
+   * @param entry - The candidate value to check.
+   * @returns True if the value is a valid RecipeImagePreference, false otherwise.
+   */
+  private isValidPreference(entry: unknown): entry is RecipeImagePreference {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      return false;
+    }
+    const candidate = entry as Record<string, unknown>;
+    if (
+      typeof candidate.recipeId !== 'string' ||
+      typeof candidate.imageId !== 'string' ||
+      typeof candidate.url !== 'string' ||
+      typeof candidate.thumbUrl !== 'string' ||
+      typeof candidate.altDescription !== 'string' ||
+      typeof candidate.photographerName !== 'string' ||
+      typeof candidate.isCustom !== 'boolean' ||
+      typeof candidate.updatedAt !== 'string'
+    ) {
+      return false;
+    }
+    if (candidate.photographerUrl !== undefined && typeof candidate.photographerUrl !== 'string') {
+      return false;
+    }
+    try {
+      validateRecipeImagePreference(candidate as unknown as RecipeImagePreference);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Safely reads stored image preferences from localStorage, validating object structure
+   * and runtime conformity of each entry against the RecipeImagePreference contract.
+   * Discards invalid entries and preserves valid ones.
    *
    * @returns A map of recipe IDs to their stored preferences, or null if storage access failed.
    */
@@ -64,7 +100,13 @@ export class RecipeImagePreferenceService {
         if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
           return {};
         }
-        return parsed as Record<string, RecipeImagePreference>;
+        const validPreferences: Record<string, RecipeImagePreference> = {};
+        for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+          if (this.isValidPreference(value)) {
+            validPreferences[key] = value;
+          }
+        }
+        return validPreferences;
       } catch {
         return {};
       }
@@ -97,7 +139,6 @@ export class RecipeImagePreferenceService {
 
   /**
    * Retrieves the current user-selected image preference for a given recipe ID.
-   * Validates that the stored entry matches the expected preference structure.
    *
    * @param recipeId - The unique identifier of the recipe.
    * @returns The saved preference, or null if using default image.
@@ -106,14 +147,7 @@ export class RecipeImagePreferenceService {
     if (!recipeId) return null;
     const all = this.readStorage();
     if (!all) return null;
-    const candidate = all[recipeId];
-    if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) {
-      return null;
-    }
-    if (typeof candidate.recipeId !== 'string' || typeof candidate.url !== 'string') {
-      return null;
-    }
-    return candidate;
+    return all[recipeId] || null;
   }
 
   /**

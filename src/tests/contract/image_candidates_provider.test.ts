@@ -74,7 +74,7 @@ describe('ImageProviderClient Candidates Contract Tests', () => {
     expect(defaultCount).toHaveLength(6);
   });
 
-  it('returns empty array when remote returns fewer than 3 usable candidates', async () => {
+  it('returns empty array when remote returns only a single usable candidate', async () => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
       ok: true,
       json: async () => ({
@@ -95,6 +95,38 @@ describe('ImageProviderClient Candidates Contract Tests', () => {
     });
 
     expect(candidates).toEqual([]);
+    fetchSpy.mockRestore();
+  });
+
+  it('continues to fallback collection when remote returns exactly two usable candidates', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        results: [
+          {
+            id: 'photo-1',
+            urls: { regular: 'https://images.example.com/photo-1.jpg' },
+            alt_description: 'Photo 1',
+            user: { name: 'Photographer 1' },
+          },
+          {
+            id: 'photo-2',
+            urls: { regular: 'https://images.example.com/photo-2.jpg' },
+            alt_description: 'Photo 2',
+            user: { name: 'Photographer 2' },
+          },
+        ],
+      }),
+    } as unknown as Response);
+
+    const candidates = await client.fetchImageCandidatesByKeyword({
+      keyword: 'non-curated-two-results',
+      count: 4,
+    });
+
+    expect(candidates).toHaveLength(4);
+    expect(candidates[0].isFallback).toBe(true);
+    expect(candidates[0].url).toContain('data:image/svg+xml');
     fetchSpy.mockRestore();
   });
 });

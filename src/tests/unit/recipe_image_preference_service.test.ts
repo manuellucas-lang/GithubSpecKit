@@ -161,5 +161,57 @@ describe('RecipeImagePreferenceService (Unit Tests)', () => {
       preference: null,
     });
   });
+
+  it('validates each entry at runtime in storage and discards invalid entries while preserving valid ones', () => {
+    const validEntry = {
+      recipeId: 'recipe-valid',
+      imageId: 'cand-1',
+      url: 'https://example.com/paella.jpg',
+      thumbUrl: 'https://example.com/paella-thumb.jpg',
+      altDescription: 'Paella',
+      photographerName: 'Chef',
+      isCustom: true,
+      updatedAt: new Date().toISOString(),
+    };
+
+    const invalidEntry1 = {
+      recipeId: 'recipe-invalid-1',
+      imageId: 'cand-bad',
+      // missing url
+      isCustom: true,
+    };
+
+    const invalidEntry2 = 'string-not-an-object';
+
+    const invalidEntry3 = {
+      recipeId: 'recipe-invalid-3',
+      imageId: 'cand-3',
+      url: 'https://example.com/img.jpg',
+      thumbUrl: 'https://example.com/thumb.jpg',
+      altDescription: 'Alt',
+      photographerName: 'Photographer',
+      isCustom: true,
+      updatedAt: 'not-a-valid-date',
+    };
+
+    localStorage.setItem(
+      'recipe_catalog_image_preferences',
+      JSON.stringify({
+        'recipe-valid': validEntry,
+        'recipe-invalid-1': invalidEntry1,
+        'recipe-invalid-2': invalidEntry2,
+        'recipe-invalid-3': invalidEntry3,
+      })
+    );
+
+    const all = service.getAllPreferences();
+    expect(Object.keys(all)).toEqual(['recipe-valid']);
+    expect(all['recipe-valid']?.recipeId).toBe('recipe-valid');
+
+    expect(service.getPreference('recipe-valid')).not.toBeNull();
+    expect(service.getPreference('recipe-invalid-1')).toBeNull();
+    expect(service.getPreference('recipe-invalid-2')).toBeNull();
+    expect(service.getPreference('recipe-invalid-3')).toBeNull();
+  });
 });
 

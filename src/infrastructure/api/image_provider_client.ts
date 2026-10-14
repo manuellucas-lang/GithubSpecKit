@@ -401,7 +401,7 @@ export class ImageProviderClient {
           if (candidates.length >= 3) {
             return candidates;
           }
-          if (candidates.length > 0) {
+          if (candidates.length === 1) {
             return [];
           }
         }

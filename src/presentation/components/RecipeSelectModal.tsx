@@ -3,6 +3,9 @@ import { Recipe } from '../../domain/models/recipe';
 import { useRecipeImagePreference } from '../hooks/useRecipeImagePreference';
 import { X, Search, Clock, Plus } from 'lucide-react';
 
+/**
+ * Props for the RecipeSelectModal component.
+ */
 interface RecipeSelectModalProps {
   recipes: Recipe[];
   dayLabel: string;
@@ -11,7 +14,14 @@ interface RecipeSelectModalProps {
   onClose: () => void;
 }
 
+/**
+ * Item row inside the recipe selection modal, showing title, cooking time, and image preference.
+ *
+ * @param props - Item properties containing the recipe and select handler.
+ * @returns The rendered selection row.
+ */
 const RecipeSelectItem = ({ recipe, onSelect }: { recipe: Recipe; onSelect: (r: Recipe) => void }) => {
+
   const { imageUrl, altDescription } = useRecipeImagePreference(recipe.id, recipe.keyword);
   return (
     <div
@@ -76,6 +86,12 @@ const RecipeSelectItem = ({ recipe, onSelect }: { recipe: Recipe; onSelect: (r: 
 };
 
 
+/**
+ * Modal dialog enabling users to select a recipe from the catalog to assign to a meal plan slot.
+ *
+ * @param props - Component properties with catalog recipes, day/slot labels, and selection callbacks.
+ * @returns The rendered selection modal element.
+ */
 export const RecipeSelectModal = ({
   recipes,
   dayLabel,

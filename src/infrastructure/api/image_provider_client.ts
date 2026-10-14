@@ -1,12 +1,18 @@
 import { imageCache } from '../cache/image_cache';
 import { RecipeImageCandidate } from '../../domain/models/recipe_image_candidate';
 
+/**
+ * Configuration options for querying a single recipe image.
+ */
 export interface ImageQueryOptions {
   keyword: string;
   orientation?: 'landscape' | 'portrait' | 'squarish';
   quality?: 'regular' | 'thumb' | 'high';
 }
 
+/**
+ * Result representation of a single recipe image query.
+ */
 export interface ImageQueryResult {
   keyword: string;
   url: string;
@@ -17,11 +23,15 @@ export interface ImageQueryResult {
   isFallback: boolean;
 }
 
+/**
+ * Configuration options for querying multiple alternative image candidates.
+ */
 export interface ImageCandidatesQueryOptions {
   keyword: string;
   count?: number;
   orientation?: 'landscape' | 'squarish';
 }
+
 
 interface CuratedPhoto {
   id: string;
@@ -190,13 +200,30 @@ const CURATED_CANDIDATE_GALLERIES: Record<string, CuratedPhoto[]> = {
 
 const DEFAULT_FALLBACK_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"><rect width="800" height="600" fill="%231e293b"/><path d="M400 230c-55 0-100 45-100 100 0 60 70 120 100 140 30-20 100-80 100-140 0-55-45-100-100-100z" fill="%23ea580c" opacity="0.3"/><text x="400" y="320" font-family="system-ui" font-size="28" font-weight="bold" fill="%23f8fafc" text-anchor="middle">Plato Gourmet</text><text x="400" y="360" font-family="system-ui" font-size="16" fill="%2394a3b8" text-anchor="middle">Imagen gastronómica en preparación</text></svg>';
 
+/**
+ * Generates an inline SVG data URI as fallback visual for an image candidate option.
+ *
+ * @param index - The positional index of the candidate.
+ * @param keyword - The search term or recipe name.
+ * @returns An encoded SVG data URI string.
+ */
 function createFallbackSvg(index: number, keyword: string): string {
   const hues = ['%23ea580c', '%233b82f6', '%2310b981', '%238b5cf6'];
   const fill = hues[index % hues.length];
   return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 800 600"><rect width="800" height="600" fill="%231e293b"/><circle cx="400" cy="280" r="90" fill="${fill}" opacity="0.25"/><text x="400" y="300" font-family="system-ui" font-size="24" font-weight="bold" fill="%23f8fafc" text-anchor="middle">Opción Culinaria ${index + 1}</text><text x="400" y="340" font-family="system-ui" font-size="14" fill="%2394a3b8" text-anchor="middle">${keyword}</text></svg>`;
 }
 
+/**
+ * Service client responsible for fetching primary and alternative recipe imagery
+ * from local curated collections, remote image providers, or resilient SVG fallbacks.
+ */
 export class ImageProviderClient {
+  /**
+   * Fetches a single representative image for a culinary keyword.
+   *
+   * @param options - Query parameters including keyword and visual formatting.
+   * @returns A promise resolving to the image query result.
+   */
   async fetchImageByKeyword(options: ImageQueryOptions): Promise<ImageQueryResult> {
     const keyword = options.keyword.toLowerCase().trim();
 
@@ -270,6 +297,12 @@ export class ImageProviderClient {
     };
   }
 
+  /**
+   * Fetches multiple alternative candidate images for a given keyword to display in a selection carousel.
+   *
+   * @param options - Query parameters including the keyword and desired candidate count.
+   * @returns A promise resolving to an array of recipe image candidates.
+   */
   async fetchImageCandidatesByKeyword(options: ImageCandidatesQueryOptions): Promise<RecipeImageCandidate[]> {
     const keyword = options.keyword.toLowerCase().trim();
     const count = options.count && options.count > 0 ? options.count : 4;

@@ -5,12 +5,23 @@ import { CookingTimeBadge } from './CookingTimeBadge';
 import { useRecipeImagePreference } from '../hooks/useRecipeImagePreference';
 import { Users, ChefHat } from 'lucide-react';
 
+/**
+ * Props for the RecipeCard component.
+ */
 interface RecipeCardProps {
   recipe: Recipe;
   onSelect: (recipe: Recipe) => void;
 }
 
+/**
+ * Visual card summarizing a recipe with reactive image rendering,
+ * dietary badges, preparation time, and selection navigation.
+ *
+ * @param props - Component properties containing the recipe and selection handler.
+ * @returns The rendered recipe card element.
+ */
 export const RecipeCard: React.FC<RecipeCardProps> = ({ recipe, onSelect }) => {
+
   const { imageUrl, altDescription, isLoading } = useRecipeImagePreference(recipe.id, recipe.keyword);
 
   return (

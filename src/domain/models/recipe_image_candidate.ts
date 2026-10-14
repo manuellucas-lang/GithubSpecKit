@@ -1,3 +1,6 @@
+/**
+ * Represents a candidate image option for a recipe retrieved from a provider.
+ */
 export interface RecipeImageCandidate {
   id: string;
   keyword: string;
@@ -9,6 +12,12 @@ export interface RecipeImageCandidate {
   isFallback: boolean;
 }
 
+/**
+ * Validates a recipe image candidate entity against integrity and constraint rules.
+ *
+ * @param candidate - The image candidate object to validate.
+ * @throws {Error} If candidate id, url, alt description, or photographer name is invalid or missing.
+ */
 export function validateRecipeImageCandidate(candidate: RecipeImageCandidate): void {
   if (!candidate.id || candidate.id.trim() === '') {
     throw new Error('Candidate image id is required');
@@ -23,3 +32,4 @@ export function validateRecipeImageCandidate(candidate: RecipeImageCandidate): v
     throw new Error('Candidate photographer name is required');
   }
 }
+

@@ -6,12 +6,23 @@ import { useRecipeImagePreference } from '../hooks/useRecipeImagePreference';
 import { RecipeImageCarouselModal } from './RecipeImageCarouselModal';
 import { ArrowLeft, Users, ChefHat, AlertTriangle, ShieldCheck, Camera, Sparkles } from 'lucide-react';
 
+/**
+ * Props for the RecipeDetail component.
+ */
 interface RecipeDetailProps {
   recipe: Recipe;
   onBack: () => void;
 }
 
+/**
+ * Detailed recipe view presenting full culinary specifications, ingredient lists,
+ * allergen warnings, step-by-step instructions, and alternative imagery selection trigger.
+ *
+ * @param props - Component properties containing the recipe entity and return callback.
+ * @returns The rendered detailed recipe view.
+ */
 export const RecipeDetail: React.FC<RecipeDetailProps> = ({ recipe, onBack }) => {
+
   const {
     imageUrl,
     altDescription,

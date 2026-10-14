@@ -5,6 +5,9 @@ import { RecipeSelectModal } from './RecipeSelectModal';
 import { useRecipeImagePreference } from '../hooks/useRecipeImagePreference';
 import { Calendar, Trash2, Plus, Clock, Utensils, Moon } from 'lucide-react';
 
+/**
+ * Props for the WeeklyPlanner component.
+ */
 interface WeeklyPlannerProps {
   plan: WeeklyPlan;
   recipes: Recipe[];
@@ -14,6 +17,12 @@ interface WeeklyPlannerProps {
   onOpenRecipeDetail: (recipe: Recipe) => void;
 }
 
+/**
+ * Individual assigned meal item within a weekly planner day slot.
+ *
+ * @param props - Item properties containing recipe data, detail callback, and removal callback.
+ * @returns The rendered meal card in the plan grid.
+ */
 const PlannerMealItem = ({
   recipe,
   onOpenDetail,
@@ -25,6 +34,7 @@ const PlannerMealItem = ({
   onRemove: () => void;
   removeAriaLabel: string;
 }) => {
+
   const { imageUrl, altDescription } = useRecipeImagePreference(recipe.id, recipe.keyword);
   return (
     <div
@@ -71,6 +81,13 @@ const PlannerMealItem = ({
 };
 
 
+/**
+ * Weekly meal planning board allowing users to assign, view, and clear meal slots
+ * across the 7 days of the week, reflecting recipe imagery preferences.
+ *
+ * @param props - Component properties containing the plan, available recipes, and meal management callbacks.
+ * @returns The rendered weekly meal planning grid.
+ */
 export const WeeklyPlanner = ({
   plan,
   recipes,

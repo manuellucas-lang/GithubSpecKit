@@ -3,6 +3,9 @@ import { RecipeImageCandidate } from '../../domain/models/recipe_image_candidate
 import { imageProviderClient } from '../../infrastructure/api/image_provider_client';
 import { X, ChevronLeft, ChevronRight, Check, RotateCcw, Camera, Sparkles } from 'lucide-react';
 
+/**
+ * Props for the RecipeImageCarouselModal component.
+ */
 export interface RecipeImageCarouselModalProps {
   isOpen: boolean;
   recipeId: string;
@@ -14,6 +17,13 @@ export interface RecipeImageCarouselModalProps {
   onClose: () => void;
 }
 
+/**
+ * Modal dialog presenting a horizontal, touch-friendly carousel of candidate
+ * images for a given recipe, allowing users to select an alternative visual or reset to default.
+ *
+ * @param props - Component properties configuring modal state, recipe context, and event handlers.
+ * @returns The rendered modal dialog element or null if closed.
+ */
 export const RecipeImageCarouselModal: React.FC<RecipeImageCarouselModalProps> = ({
   isOpen,
   recipeTitle,
@@ -23,6 +33,7 @@ export const RecipeImageCarouselModal: React.FC<RecipeImageCarouselModalProps> =
   onResetDefault,
   onClose,
 }) => {
+
   const [candidates, setCandidates] = useState<RecipeImageCandidate[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);

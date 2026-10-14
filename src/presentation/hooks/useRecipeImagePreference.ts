@@ -4,6 +4,9 @@ import { RecipeImagePreference } from '../../domain/models/recipe_image_preferen
 import { recipeImagePreferenceService } from '../../domain/services/recipe_image_preference_service';
 import { useRecipeImage } from './useRecipeImage';
 
+/**
+ * Result state and action handlers returned by the useRecipeImagePreference hook.
+ */
 export interface UseRecipeImagePreferenceResult {
   imageUrl?: string;
   thumbUrl?: string;
@@ -16,7 +19,17 @@ export interface UseRecipeImagePreferenceResult {
   resetToDefault: () => void;
 }
 
+/**
+ * Custom React hook that resolves and synchronizes recipe imagery in real-time.
+ * It favors user-selected custom preferences if present, falling back to default
+ * fetched recipe imagery, and reacts to cross-component preference updates.
+ *
+ * @param recipeId - The unique identifier of the target recipe.
+ * @param keyword - The search term or title used for default image discovery.
+ * @returns State properties containing active image URLs, metadata, and selection handlers.
+ */
 export function useRecipeImagePreference(recipeId: string, keyword: string): UseRecipeImagePreferenceResult {
+
   const { image: defaultImage, isLoading: isDefaultLoading } = useRecipeImage(keyword);
   const [preference, setPreference] = useState<RecipeImagePreference | null>(() => {
     return recipeImagePreferenceService.getPreference(recipeId);

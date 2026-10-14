@@ -1,3 +1,6 @@
+/**
+ * Represents a user's stored image preference for a specific recipe.
+ */
 export interface RecipeImagePreference {
   recipeId: string;
   imageId: string;
@@ -10,6 +13,12 @@ export interface RecipeImagePreference {
   updatedAt: string;
 }
 
+/**
+ * Validates a recipe image preference record against format and integrity rules.
+ *
+ * @param preference - The recipe image preference to validate.
+ * @throws {Error} If recipe id, image id, url is empty, or if updatedAt is not a valid ISO timestamp.
+ */
 export function validateRecipeImagePreference(preference: RecipeImagePreference): void {
   if (!preference.recipeId || preference.recipeId.trim() === '') {
     throw new Error('Recipe id is required for image preference');
@@ -24,3 +33,4 @@ export function validateRecipeImagePreference(preference: RecipeImagePreference)
     throw new Error('Valid ISO-8601 updatedAt timestamp is required');
   }
 }
+

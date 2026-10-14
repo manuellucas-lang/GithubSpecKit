@@ -4,17 +4,29 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev": "concurrently -n \"backend,frontend\" -c \"blue,cyan\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "tsx watch backend/server.ts",
+    "dev:frontend": "vite",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:frontend": "vite build",
+    "build:backend": "tsc --noEmit",
+    "start": "tsx backend/server.ts",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@fastify/cors": "^11.3.1",
+    "@fastify/helmet": "^13.2.0",
+    "@fastify/rate-limit": "^11.2.1",
+    "@types/better-sqlite3": "^9.6.0",
+    "better-sqlite3": "^13.0.3",
+    "fastify": "^5.12.7",
     "lucide-react": "^1.16.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
@@ -22,8 +34,10 @@
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
     "@vitejs/plugin-react": "^4.3.4",
+    "concurrently": "^10.0.6",
     "jsdom": "^26.0.0",
     "msw": "^2.7.0",
+    "tsx": "^4.23.15",
     "typescript": "^5.7.3",
     "vite": "^6.0.11",
     "vitest": "^3.0.4"

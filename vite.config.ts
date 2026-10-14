@@ -7,10 +7,19 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@domain': path.resolve(__dirname, './src/domain'),
-      '@infra': path.resolve(__dirname, './src/infrastructure'),
-      '@presentation': path.resolve(__dirname, './src/presentation'),
-      '@tests': path.resolve(__dirname, './src/tests'),
+      '@shared': path.resolve(__dirname, './shared'),
+      '@backend': path.resolve(__dirname, './backend'),
+      '@frontend': path.resolve(__dirname, './frontend'),
+      '@tests': path.resolve(__dirname, './tests'),
+    },
+  },
+  server: {
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+      },
     },
   },
 });
